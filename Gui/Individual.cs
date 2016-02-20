@@ -59,15 +59,10 @@ namespace Gui
                 else
                     ret = false;
             }
-
-            /*
-            if (Math.Abs(error[0]) + Math.Abs(error[1]) < errorThreshold)
-                ret = true;
-            */
-
+            
             if (bp)
             {
-                nn.BackProp(error);
+                nn.BackPropagation(error);
             }
 
             return ret;                
@@ -75,7 +70,13 @@ namespace Gui
 
         public string info()
         {
-            return "ID:" + ID + " Hist:" + histogramType + " Layers:" + nn.hiddenLayers.Count + " Per Layer:" + nn.hiddenLayers[0].Count + " Cycles:" + totalCycles + " Score:" + validationScore.ToString("#.##") + "\r\n";
+            return  "ID:" + ID + 
+                    " Hist:" + histogramType + 
+                    " Layers:" + nn.hiddenLayers.Count + 
+                    " Per Layer:" + nn.hiddenLayers[0].Count + 
+                    " Cycles:" + totalCycles + 
+                    " Score:" + validationScore.ToString("#.###") + 
+                    "\r\n";
         }
     }
 }

@@ -24,7 +24,7 @@ namespace Gui
         List<HistData>[] ValidationSet = new List<HistData>[4];
 
         List<Individual> Individuals = new List<Individual>();
-        List<Individual> GoodOnes = new List<Individual>();
+        List<Individual> CouncilOfElrond = new List<Individual>();
 
         public Form1()
         {
@@ -208,12 +208,12 @@ namespace Gui
             for (int v = 0; v < ValidationSet[0].Count; v++)
             {
                 int c = 0;
-                foreach (var i in GoodOnes)
+                foreach (var i in CouncilOfElrond)
                 {                    
                     if (i.FF(ValidationSet[i.histogramType].ElementAt(v).hist, false, ValidationSet[i.histogramType].ElementAt(v).good))
                         c++;
                 }
-                if (c <= GoodOnes.Count / 2)
+                if (c <= CouncilOfElrond.Count / 2)
                     imagesFailed.Add(v);
                 else
                     imagesPassed++;
@@ -252,8 +252,10 @@ namespace Gui
             {
                 int rNewLayers = r.Next((int)numericUpDownLayersMin.Value, (int)numericUpDownLayersMax.Value + 1);
                 int rNewPerLayer = r.Next((int)numericUpDownPerLayerMin.Value, (int)numericUpDownPerLayerMax.Value + 1);
+                //These are used in case a new Individual needs to be created.
 
-                Thread[] threads = new Thread[Individuals.Count];
+                Thread[] threads = new Thread[Individuals.Count];   //Each Individual will now be given a thread and will be 
+                                                                    //trained for 1000 iterations.
 
                 for (int i = 0; i < Individuals.Count; i++)
                 {
@@ -273,6 +275,7 @@ namespace Gui
                         if (threads[t].ThreadState != ThreadState.Stopped)
                         {
                             threadsDone = false;
+                            Thread.Sleep(25);
                         }
                     }
                 }
@@ -287,7 +290,7 @@ namespace Gui
                     if (!Individuals[i].training)
                     {
                         Individual good = Individuals[i];
-                        GoodOnes.Add(good);
+                        CouncilOfElrond.Add(good);
 
                         goodTextBoxBuffer += good.info();
 
@@ -310,12 +313,12 @@ namespace Gui
                     Validate(Individuals[i]);
                 }
 
-                if (GoodOnes.Count >= (int)numericUpDownGoodOnes.Value)
+                if (CouncilOfElrond.Count >= (int)numericUpDownGoodOnes.Value)
                 {
                     done = ValidateGoodOnes();
                     if (!done)
-                        GoodOnes.RemoveAt(0);
-                        //GoodOnes.Clear();
+                        CouncilOfElrond.RemoveAt(0);
+                        //CouncilOfElrond.Clear();
                 }
                 backgroundWorkerTrainer.ReportProgress(0);
             }            
@@ -343,7 +346,7 @@ namespace Gui
                 using (Stream stream = File.Open("good.bin", FileMode.Create))
                 {
                     BinaryFormatter bin = new BinaryFormatter();
-                    bin.Serialize(stream, GoodOnes);
+                    bin.Serialize(stream, CouncilOfElrond);
                 }
             }
             catch (IOException)
@@ -353,6 +356,10 @@ namespace Gui
 
         private void buttonTrain_Click(object sender, EventArgs e)
         {
+            //Populates the Individuals list. One per core. The topology (layers*perlayer) is randomly chosen
+            //for each Individual between the limits set in the gui. Then, backgroundWorkerTrainer is started
+            //which will train each Individual in parallel.
+
             for (int i = 0; i < Environment.ProcessorCount; i++)
             {
                 int hType = r.Next(4);
@@ -364,11 +371,6 @@ namespace Gui
                 Individuals.Add(individual);
             }
             backgroundWorkerTrainer.RunWorkerAsync();
-        }
-
-        private void buttonGetTrainingFolder_Click(object sender, EventArgs e)
-        {
-
         }
     }
 }

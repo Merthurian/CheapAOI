@@ -86,6 +86,7 @@ namespace NeuralNetwork
 
             double sumOfWeightedInputs = 0;
 
+            #region The feeding forward
             for (int x = 0; x < hiddenLayers.Count; x++)
             {
                 for (int y = 0; y < hiddenLayers[x].Count; y++)
@@ -95,7 +96,6 @@ namespace NeuralNetwork
                     for (int i = 0; i < previousLayer.Count; i++)
                     {
                         sumOfWeightedInputs += previousLayer[i].value * hiddenLayers[x].ElementAt(y).inputWeights[i];
-                        //Multiply the value of previousLayer[i] by the weight of the connections to it.
                     }
 
                     hiddenLayers[x].ElementAt(y).value = Sigmoid(sumOfWeightedInputs);
@@ -104,7 +104,7 @@ namespace NeuralNetwork
                 previousLayer = hiddenLayers[x];//Now do the same all the way through
             }
 
-            for (int i = 0; i < outputLayer.Count; i++)
+            for (int i = 0; i < outputLayer.Count; i++)//Same as above
             {
                 sumOfWeightedInputs = 0;
                 for (int j = 0; j < previousLayer.Count; j++)
@@ -112,29 +112,29 @@ namespace NeuralNetwork
                     sumOfWeightedInputs += previousLayer[j].value * outputLayer[i].inputWeights[j];
                 }
                 outputLayer[i].value = Sigmoid(sumOfWeightedInputs);
-            }
+            } 
+            #endregion
 
             double[] result = new double[outputLayer.Count];
 
             for (int i = 0; i < result.Length; i++)
             {
                 result[i] = outputLayer[i].value;
-            }
-
-            CompoundValue();
+            };
 
             return result;
         }
 
-        public void BackProp(double[] errors)
+        public void BackPropagation(double[] errors)
         {
             for (int i = 0; i < errors.Length; i++)
             {
                 outputLayer[i].error += errors[i];
             }
 
-            List<Neuron> previousLayer = outputLayer;
+            List<Neuron> previousLayer = outputLayer;   //Placeholder again
 
+            #region The actual back propagation of errors
             for (int i = hiddenLayers.Count - 1; i >= 0; i--)
             {
                 for (int j = 0; j < hiddenLayers[i].Count; j++)
@@ -142,7 +142,7 @@ namespace NeuralNetwork
                     for (int k = 0; k < previousLayer.Count; k++)
                     {
                         hiddenLayers[i].ElementAt(j).error += previousLayer[k].error * previousLayer[k].inputWeights[j];
-                    }                    
+                    }
                 }
                 previousLayer = hiddenLayers[i];
             }
@@ -153,21 +153,21 @@ namespace NeuralNetwork
                 {
                     inputLayer[i].error += previousLayer[j].error * previousLayer[j].inputWeights[i];
                 }
-            }
+            } 
+            #endregion
             
-            CompoundError();               
-
             previousLayer = inputLayer;
 
+            #region Change the weights
             for (int i = 0; i < hiddenLayers.Count; i++)
             {
                 for (int j = 0; j < hiddenLayers[i].Count; j++)
                 {
                     for (int k = 0; k < previousLayer.Count; k++)
                     {
-                        double d = Derivative(hiddenLayers[i].ElementAt(j).compoundValue);
-                        double e = hiddenLayers[i].ElementAt(j).compoundError;
-                        double a = previousLayer[k].compoundValue;
+                        double d = Derivative(hiddenLayers[i].ElementAt(j).value);
+                        double e = hiddenLayers[i].ElementAt(j).error;
+                        double a = previousLayer[k].value;
                         double w = hiddenLayers[i].ElementAt(j).inputWeights[k];
 
                         hiddenLayers[i].ElementAt(j).inputWeights[k] += learningCoefficient * e * d * a;
@@ -180,23 +180,24 @@ namespace NeuralNetwork
             {
                 for (int j = 0; j < previousLayer.Count; j++)
                 {
-                    double d = Derivative(outputLayer[i].compoundValue);
-                    double e = outputLayer[i].compoundError;
-                    double a = previousLayer[j].compoundValue;
+                    double d = Derivative(outputLayer[i].value);
+                    double e = outputLayer[i].error;
+                    double a = previousLayer[j].value;
                     double w = outputLayer[i].inputWeights[j];
 
                     outputLayer[i].inputWeights[j] += learningCoefficient * e * d * a;
                 }
-            }
+            } 
+            #endregion
 
             ReZero();
         }
-
-        public void CompoundError()
+        
+        public void ReZero()
         {
             for (int i = 0; i < inputLayer.Count; i++)
             {
-                inputLayer[i].compoundError = inputLayer[i].error;
+                inputLayer[i].value = 0;
                 inputLayer[i].error = 0;
             }
 
@@ -204,61 +205,15 @@ namespace NeuralNetwork
             {
                 for (int j = 0; j < hiddenLayers[i].Count; j++)
                 {
-                    hiddenLayers[i].ElementAt(j).compoundError = hiddenLayers[i].ElementAt(j).error;
+                    hiddenLayers[i].ElementAt(j).value = 0;
                     hiddenLayers[i].ElementAt(j).error = 0;
                 }
             }
 
             for (int i = 0; i < outputLayer.Count; i++)
             {
-                outputLayer[i].compoundError = outputLayer[i].error;
-                outputLayer[i].error = 0;
-            }
-        }
-        public void CompoundValue()
-        {
-            for (int i = 0; i < inputLayer.Count; i++)
-            {
-                inputLayer[i].compoundValue = inputLayer[i].value;
-                inputLayer[i].value = 0;
-            }
-
-            for (int i = 0; i < hiddenLayers.Count; i++)
-            {
-                for (int j = 0; j < hiddenLayers[i].Count; j++)
-                {
-                    hiddenLayers[i].ElementAt(j).compoundValue = hiddenLayers[i].ElementAt(j).value;
-                    hiddenLayers[i].ElementAt(j).value = 0;
-                }
-            }
-
-            for (int i = 0; i < outputLayer.Count; i++)
-            {
-                outputLayer[i].compoundValue = outputLayer[i].value;
                 outputLayer[i].value = 0;
-            }
-        }
-        public void ReZero()
-        {
-            for (int i = 0; i < inputLayer.Count; i++)
-            {
-                inputLayer[i].compoundValue = 0;
-                inputLayer[i].compoundError = 0;
-            }
-
-            for (int i = 0; i < hiddenLayers.Count; i++)
-            {
-                for (int j = 0; j < hiddenLayers[i].Count; j++)
-                {
-                    hiddenLayers[i].ElementAt(j).compoundValue = 0;
-                    hiddenLayers[i].ElementAt(j).compoundError = 0;
-                }
-            }
-
-            for (int i = 0; i < outputLayer.Count; i++)
-            {
-                outputLayer[i].compoundValue = 0;
-                outputLayer[i].compoundError = 0;
+                outputLayer[i].error = 0;
             }
         }
 

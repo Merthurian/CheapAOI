@@ -52,7 +52,7 @@
     <Compile Include="Gui.Designer.cs">
       <DependentUpon>Gui.cs</DependentUpon>
     </Compile>
-    <Compile Include="Indivudual.cs" />
+    <Compile Include="Individual.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <EmbeddedResource Include="Gui.resx">

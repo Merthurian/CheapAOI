@@ -15,9 +15,6 @@ namespace NeuralNetwork
         public List<double> inputWeights = new List<double>();
         public double value;            //Weighted sum of all inputs
 
-        public double compoundValue;    //Used in back propagation if multiple training passes are enabled 
-        public double compoundError;    //
-
         public double error;            //Used in back propagation                 
     }
 }
