@@ -8,10 +8,16 @@ namespace NeuralNetwork
     [Serializable()]
     public class Neuron
     {
+        //The neuron is a node with an unlimited number input and output connections
+        //It takes the weighted sum of all the inputs. Squashes this to between
+        //-1 and 1, then passes this resulting value on to each output. That's it.
+
         public List<double> inputWeights = new List<double>();
-        public double value;
-        public double error;
-        public double compoundError;
-        public double compoundValue;
+        public double value;            //Weighted sum of all inputs
+
+        public double compoundValue;    //Used in back propagation if multiple training passes are enabled 
+        public double compoundError;    //
+
+        public double error;            //Used in back propagation                 
     }
 }

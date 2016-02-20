@@ -8,12 +8,13 @@ namespace NeuralNetwork
     [Serializable()]
     public class NN
     {
-        double learningCoefficient;
+        static Random r = new Random();
+        double learningCoefficient; //Used to tune backpropagation
 
-        int totalWeights = 0;
+        int pass;                   //Used when multiple backprop passes are enabled
+        int maxPasses;              //
 
-        int pass;
-        int maxPasses;
+        int totalWeights = 0;       //Or, total numer of connections between all neurons
 
         public List<Neuron> inputLayer = new List<Neuron>();
         public List<List<Neuron>> hiddenLayers = new List<List<Neuron>>();
@@ -21,18 +22,19 @@ namespace NeuralNetwork
 
         public NN(int inputs, int outputs, int layers, int perLayer, int _maxPasses)
         {
-            Random r = new Random();
-
             maxPasses = _maxPasses;
 
+            #region Network Connection
             for (int i = 0; i < inputs; i++)
             {
                 inputLayer.Add(new Neuron());
             }
 
-            inputLayer.Add(new Neuron());
-            inputLayer.Add(new Neuron());
+            inputLayer.Add(new Neuron());   //These two will be used to pass a -1 and 1 constantly to the network
+            inputLayer.Add(new Neuron());   //Sometimes called biasing inputs. The XOR problem wouldn't converge
+                                            //until I did this.
 
+            
             List<Neuron> previousLayer = inputLayer; //Placeholder for connetion purposes
 
             for (int x = 0; x < layers; x++)
@@ -60,14 +62,19 @@ namespace NeuralNetwork
                     outputLayer[j].inputWeights.Add((r.NextDouble() * 2) - 1);
                     totalWeights++;
                 }
-            }
+            } 
+            #endregion
 
             learningCoefficient = 0.5 / totalWeights;
         }
 
         public double[] FeedForward(double[] inputValues)
         {
-            if (inputValues.Length != inputLayer.Count - 2)
+            //Feed the input values to the input neurons. For each neuron,
+            //pass on the squashed weighted sum of it's inputs. Then return the values
+            //at each output neuron.
+
+            if (inputValues.Length != inputLayer.Count - 2) //The two biasing neurons ..
             {
                 return new double[] { -999 };//TODO: Throw exception
             }
@@ -77,10 +84,10 @@ namespace NeuralNetwork
                 inputLayer[i].value = inputValues[i];
             }
 
-            inputLayer[inputLayer.Count - 1].value = 1;//Bias
-            inputLayer[inputLayer.Count - 2].value = -1;//Neurons
+            inputLayer[inputLayer.Count - 1].value = 1;     //Bias neurons
+            inputLayer[inputLayer.Count - 2].value = -1;    //
 
-            List<Neuron> previousLayer = inputLayer;
+            List<Neuron> previousLayer = inputLayer;        //Placeholder
 
             double sumOfWeightedInputs = 0;
 
@@ -89,13 +96,17 @@ namespace NeuralNetwork
                 for (int y = 0; y < hiddenLayers[x].Count; y++)
                 {
                     sumOfWeightedInputs = 0;
+
                     for (int i = 0; i < previousLayer.Count; i++)
                     {
                         sumOfWeightedInputs += previousLayer[i].value * hiddenLayers[x].ElementAt(y).inputWeights[i];
+                        //Multiply the value of previousLayer[i] by the weight of the connections to it.
                     }
+
                     hiddenLayers[x].ElementAt(y).value = Sigmoid(sumOfWeightedInputs);
                 }
-                previousLayer = hiddenLayers[x];
+
+                previousLayer = hiddenLayers[x];//Now do the same all the way through
             }
 
             for (int i = 0; i < outputLayer.Count; i++)
@@ -119,9 +130,10 @@ namespace NeuralNetwork
 
             return result;
         }
+
         public void BackProp(double[] errors)
         {
-            pass++;
+            pass++;//
 
             for (int i = 0; i < errors.Length; i++)
             {
