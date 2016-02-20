@@ -180,6 +180,12 @@ namespace Gui
        
         private int Validate(Individual individual)
         {
+            //Exposes the Individual to the validation folder.
+            //Learning will not take place at this stage.
+            //This is to count the number of validation images
+            //an Individual net can correctly classify.
+            //It also stores a ratio of correct/total
+
             int h = individual.histogramType;
 
             int correct = 0;
@@ -193,35 +199,38 @@ namespace Gui
             double d = ((double)correct / (double)ValidationSet[h].Count);
 
             if (d > (double)numericUpDownValidationThreshold.Value)
-                individual.training = false;
+                individual.training = false;//flag for promotion 
 
             individual.validationScore = d;
             return correct;
         }
 
-        private bool ValidateGoodOnes()
+        private bool ValidateCouncilOfElrond()
         {
             int imagesPassed = 0;
 
-            List<int> imagesFailed = new List<int>();
+            List<int> imagesFailed = new List<int>();//Keep track of these to see if the nets are tripping over the same images consistantly
 
-            for (int v = 0; v < ValidationSet[0].Count; v++)
+            for (int v = 0; v < ValidationSet[0].Count; v++)                            //For each image
             {
-                int c = 0;
-                foreach (var i in CouncilOfElrond)
+                int c = 0;                                                              //Count the number of nets in the list that get the correct answer
+                foreach (var net in CouncilOfElrond)
                 {                    
-                    if (i.FF(ValidationSet[i.histogramType].ElementAt(v).hist, false, ValidationSet[i.histogramType].ElementAt(v).good))
+                    if (net.FF(ValidationSet[net.histogramType].ElementAt(v).hist,      //FF returns a bool determined by whether it classifies the image correctly
+                                false,                                                  //Don't do back prop
+                                ValidationSet[net.histogramType].ElementAt(v).good))    //The correct answer
                         c++;
                 }
-                if (c <= CouncilOfElrond.Count / 2)
-                    imagesFailed.Add(v);
+
+                if (c <= CouncilOfElrond.Count / 2)                                     //if theres ! a majority of correct answers
+                    imagesFailed.Add(v);                                                //Add this image to the list
                 else
-                    imagesPassed++;
+                    imagesPassed++;                                                     //increment this
             }
 
             double d = ((double)imagesPassed / (double)ValidationSet[0].Count);
 
-            if (imagesPassed == ValidationSet[0].Count)
+            if (imagesPassed == ValidationSet[0].Count) //If we got a correct majority on the validation
                 return true;
             else
                 return false;
@@ -252,7 +261,8 @@ namespace Gui
             {
                 int rNewLayers = r.Next((int)numericUpDownLayersMin.Value, (int)numericUpDownLayersMax.Value + 1);
                 int rNewPerLayer = r.Next((int)numericUpDownPerLayerMin.Value, (int)numericUpDownPerLayerMax.Value + 1);
-                //These are used in case a new Individual needs to be created.
+                //These are used in case a new Individual needs to be created. We can change these settings in the gui
+                //while this thread is running and alter this in real time
 
                 Thread[] threads = new Thread[Individuals.Count];   //Each Individual will now be given a thread and will be 
                                                                     //trained for 1000 iterations.
@@ -287,21 +297,21 @@ namespace Gui
                     {
                         continue;
                     }
-                    if (!Individuals[i].training)
+                    if (!Individuals[i].training)//which means that it passed validation and is now being called to join the CouncilOfElrond
                     {
                         Individual good = Individuals[i];
                         CouncilOfElrond.Add(good);
 
                         goodTextBoxBuffer += good.info();
 
-                        int hType = r.Next(4);
+                        int hType = r.Next(TrainingSet.Length);
 
                         Individuals[i] = new Individual(TrainingSet[hType].ElementAt(0).hist.Length, rNewLayers, rNewPerLayer, hType);
                     }
 
                     if (Individuals[i].totalCycles >= (int)numericUpDownMaxCycles.Value)
                     {
-                        int hType = r.Next(4);
+                        int hType = r.Next(TrainingSet.Length);
 
                         Individual old = Individuals[i];
 
@@ -315,10 +325,9 @@ namespace Gui
 
                 if (CouncilOfElrond.Count >= (int)numericUpDownGoodOnes.Value)
                 {
-                    done = ValidateGoodOnes();
+                    done = ValidateCouncilOfElrond();
                     if (!done)
-                        CouncilOfElrond.RemoveAt(0);
-                        //CouncilOfElrond.Clear();
+                        CouncilOfElrond.RemoveAt(0); //FIFO
                 }
                 backgroundWorkerTrainer.ReportProgress(0);
             }            
