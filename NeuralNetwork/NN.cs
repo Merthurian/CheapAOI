@@ -11,19 +11,14 @@ namespace NeuralNetwork
         static Random r = new Random();
         double learningCoefficient; //Used to tune backpropagation
 
-        int pass;                   //Used when multiple backprop passes are enabled
-        int maxPasses;              //
-
         int totalWeights = 0;       //Or, total numer of connections between all neurons
 
         public List<Neuron> inputLayer = new List<Neuron>();
         public List<List<Neuron>> hiddenLayers = new List<List<Neuron>>();
         public List<Neuron> outputLayer = new List<Neuron>();
 
-        public NN(int inputs, int outputs, int layers, int perLayer, int _maxPasses)
+        public NN(int inputs, int outputs, int layers, int perLayer)
         {
-            maxPasses = _maxPasses;
-
             #region Network Connection
             for (int i = 0; i < inputs; i++)
             {
@@ -133,8 +128,6 @@ namespace NeuralNetwork
 
         public void BackProp(double[] errors)
         {
-            pass++;//
-
             for (int i = 0; i < errors.Length; i++)
             {
                 outputLayer[i].error += errors[i];
@@ -162,12 +155,7 @@ namespace NeuralNetwork
                 }
             }
             
-            CompoundError();
-
-            if (pass < maxPasses)
-            {
-                return;
-            }                   
+            CompoundError();               
 
             previousLayer = inputLayer;
 
@@ -200,8 +188,6 @@ namespace NeuralNetwork
                     outputLayer[i].inputWeights[j] += learningCoefficient * e * d * a;
                 }
             }
-
-            pass = 0;
 
             ReZero();
         }
