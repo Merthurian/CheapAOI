@@ -32,6 +32,7 @@
             this.backgroundWorkerLoadData = new System.ComponentModel.BackgroundWorker();
             this.folderBrowserDialogData = new System.Windows.Forms.FolderBrowserDialog();
             this.panelMain = new System.Windows.Forms.Panel();
+            this.buttonLoadNets = new System.Windows.Forms.Button();
             this.label8 = new System.Windows.Forms.Label();
             this.label7 = new System.Windows.Forms.Label();
             this.textBoxBad = new System.Windows.Forms.TextBox();
@@ -52,7 +53,8 @@
             this.label2 = new System.Windows.Forms.Label();
             this.buttonTrain = new System.Windows.Forms.Button();
             this.backgroundWorkerTrainer = new System.ComponentModel.BackgroundWorker();
-            this.process1 = new System.Diagnostics.Process();
+            this.openFileDialog1 = new System.Windows.Forms.OpenFileDialog();
+            this.saveFileDialog1 = new System.Windows.Forms.SaveFileDialog();
             this.panelMain.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDownGoodOnes)).BeginInit();
             this.groupBoxFilter.SuspendLayout();
@@ -81,6 +83,7 @@
             // 
             // panelMain
             // 
+            this.panelMain.Controls.Add(this.buttonLoadNets);
             this.panelMain.Controls.Add(this.label8);
             this.panelMain.Controls.Add(this.label7);
             this.panelMain.Controls.Add(this.textBoxBad);
@@ -95,6 +98,16 @@
             this.panelMain.Name = "panelMain";
             this.panelMain.Size = new System.Drawing.Size(1106, 536);
             this.panelMain.TabIndex = 1;
+            // 
+            // buttonLoadNets
+            // 
+            this.buttonLoadNets.Location = new System.Drawing.Point(9, 323);
+            this.buttonLoadNets.Name = "buttonLoadNets";
+            this.buttonLoadNets.Size = new System.Drawing.Size(75, 23);
+            this.buttonLoadNets.TabIndex = 27;
+            this.buttonLoadNets.Text = "Load";
+            this.buttonLoadNets.UseVisualStyleBackColor = true;
+            this.buttonLoadNets.Click += new System.EventHandler(this.buttonLoadNets_Click);
             // 
             // label8
             // 
@@ -353,15 +366,9 @@
             this.backgroundWorkerTrainer.ProgressChanged += new System.ComponentModel.ProgressChangedEventHandler(this.backgroundWorkerTrainer_ProgressChanged);
             this.backgroundWorkerTrainer.RunWorkerCompleted += new System.ComponentModel.RunWorkerCompletedEventHandler(this.backgroundWorkerTrainer_RunWorkerCompleted);
             // 
-            // process1
+            // openFileDialog1
             // 
-            this.process1.StartInfo.Domain = "";
-            this.process1.StartInfo.LoadUserProfile = false;
-            this.process1.StartInfo.Password = null;
-            this.process1.StartInfo.StandardErrorEncoding = null;
-            this.process1.StartInfo.StandardOutputEncoding = null;
-            this.process1.StartInfo.UserName = "";
-            this.process1.SynchronizingObject = this;
+            this.openFileDialog1.FileName = "openFileDialog1";
             // 
             // Form1
             // 
@@ -415,7 +422,9 @@
         private System.Windows.Forms.Label label7;
         private System.Windows.Forms.TextBox textBoxBad;
         private System.Windows.Forms.TextBox textBoxGood;
-        private System.Diagnostics.Process process1;
+        private System.Windows.Forms.Button buttonLoadNets;
+        private System.Windows.Forms.OpenFileDialog openFileDialog1;
+        private System.Windows.Forms.SaveFileDialog saveFileDialog1;
     }
 }
 

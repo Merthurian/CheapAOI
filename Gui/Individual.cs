@@ -70,12 +70,15 @@ namespace Gui
 
         public string info()
         {
-            return  "ID:" + ID + 
-                    " Hist:" + histogramType + 
-                    " Layers:" + nn.hiddenLayers.Count + 
-                    " Per Layer:" + nn.hiddenLayers[0].Count + 
-                    " Cycles:" + totalCycles + 
-                    " Score:" + validationScore.ToString("#.###") + 
+            double percentageScore = validationScore * 100;
+
+            return  "ID: " + ID + 
+                    " Hist: " + histogramType + 
+                    " Layers: " + nn.hiddenLayers.Count + 
+                    " Per Layer: " + nn.hiddenLayers[0].Count + 
+                    " Cycles: " + totalCycles + 
+                    " Score: " + percentageScore.ToString("#.#") + 
+                    "%" +
                     "\r\n";
         }
     }

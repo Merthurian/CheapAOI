@@ -23,8 +23,9 @@ namespace Gui
         List<HistData>[] TrainingSet = new List<HistData>[4];
         List<HistData>[] ValidationSet = new List<HistData>[4];
 
-        List<Individual> Individuals = new List<Individual>();
-        List<Individual> CouncilOfElrond = new List<Individual>();
+        List<Individual> PoliceAcademy = new List<Individual>();    //Training pool
+        List<Individual> CouncilOfElrond = new List<Individual>();  //Good ones found during training
+        List<Individual> PickledBrains = new List<Individual>();    //From file 
 
         public Form1()
         {
@@ -176,8 +177,29 @@ namespace Gui
             progressBarGeneral.Value = 0;
             panelMain.Enabled = true;
         }
-        #endregion
-       
+        #endregion        
+
+        public void saveCouncilOfElrond()
+        {
+            var result = saveFileDialog1.ShowDialog();
+
+            if (result == System.Windows.Forms.DialogResult.OK)
+            {
+                try
+                {
+                    using (Stream stream = File.Open(saveFileDialog1.FileName, FileMode.Create))
+                    {
+                        BinaryFormatter bin = new BinaryFormatter();
+                        bin.Serialize(stream, CouncilOfElrond);
+                    }
+                }
+                catch (IOException)
+                {
+                }
+            }
+        }
+
+        #region Training & Validation
         private int Validate(Individual individual)
         {
             //Exposes the Individual to the validation folder.
@@ -234,7 +256,7 @@ namespace Gui
                 return true;
             else
                 return false;
-        }
+        }     
 
         private void trainThread(Individual individual)
         {
@@ -264,12 +286,12 @@ namespace Gui
                 //These are used in case a new Individual needs to be created. We can change these settings in the gui
                 //while this thread is running and alter this in real time
 
-                Thread[] threads = new Thread[Individuals.Count];   //Each Individual will now be given a thread and will be 
-                                                                    //trained for 1000 iterations.
+                Thread[] threads = new Thread[PoliceAcademy.Count];   //Each Individual will now be given a thread and will be 
+                //trained for 1000 iterations.
 
-                for (int i = 0; i < Individuals.Count; i++)
+                for (int i = 0; i < PoliceAcademy.Count; i++)
                 {
-                    threads[i] = new Thread(() => trainThread(Individuals[i]));
+                    threads[i] = new Thread(() => trainThread(PoliceAcademy[i]));
                     threads[i].Start();
                     threads[i].Join();
                 }
@@ -290,37 +312,37 @@ namespace Gui
                     }
                 }
 
-                for (int i = 0; i < Individuals.Count; i++)
+                for (int i = 0; i < PoliceAcademy.Count; i++)
                 {
-                    
-                    if (Individuals[i].goodOne)
+
+                    if (PoliceAcademy[i].goodOne)
                     {
                         continue;
                     }
-                    if (!Individuals[i].training)//which means that it passed validation and is now being called to join the CouncilOfElrond
+                    if (!PoliceAcademy[i].training)//which means that it passed validation and is now being called to join the CouncilOfElrond
                     {
-                        Individual good = Individuals[i];
+                        Individual good = PoliceAcademy[i];
                         CouncilOfElrond.Add(good);
 
                         goodTextBoxBuffer += good.info();
 
                         int hType = r.Next(TrainingSet.Length);
 
-                        Individuals[i] = new Individual(TrainingSet[hType].ElementAt(0).hist.Length, rNewLayers, rNewPerLayer, hType);
+                        PoliceAcademy[i] = new Individual(TrainingSet[hType].ElementAt(0).hist.Length, rNewLayers, rNewPerLayer, hType);
                     }
 
-                    if (Individuals[i].totalCycles >= (int)numericUpDownMaxCycles.Value)
+                    if (PoliceAcademy[i].totalCycles >= (int)numericUpDownMaxCycles.Value)
                     {
                         int hType = r.Next(TrainingSet.Length);
 
-                        Individual old = Individuals[i];
+                        Individual old = PoliceAcademy[i];
 
-                        Individuals[i] = new Individual(TrainingSet[hType].ElementAt(0).hist.Length, rNewLayers, rNewPerLayer, hType);
+                        PoliceAcademy[i] = new Individual(TrainingSet[hType].ElementAt(0).hist.Length, rNewLayers, rNewPerLayer, hType);
 
                         badTextBoxBuffer += old.info();
                     }
 
-                    Validate(Individuals[i]);
+                    Validate(PoliceAcademy[i]);
                 }
 
                 if (CouncilOfElrond.Count >= (int)numericUpDownGoodOnes.Value)
@@ -330,7 +352,7 @@ namespace Gui
                         CouncilOfElrond.RemoveAt(0); //FIFO
                 }
                 backgroundWorkerTrainer.ReportProgress(0);
-            }            
+            }
         }
 
         private void backgroundWorkerTrainer_ProgressChanged(object sender, ProgressChangedEventArgs e)
@@ -345,27 +367,18 @@ namespace Gui
             badTextBoxBuffer = "";
 
             textBoxBad.SelectionStart = textBoxBad.Text.Length;
-            textBoxBad.ScrollToCaret();    
+            textBoxBad.ScrollToCaret();
         }
 
         private void backgroundWorkerTrainer_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
-            try
-            {
-                using (Stream stream = File.Open("good.bin", FileMode.Create))
-                {
-                    BinaryFormatter bin = new BinaryFormatter();
-                    bin.Serialize(stream, CouncilOfElrond);
-                }
-            }
-            catch (IOException)
-            {
-            }
-        }
+            saveCouncilOfElrond();
+        } 
+        #endregion
 
         private void buttonTrain_Click(object sender, EventArgs e)
         {
-            //Populates the Individuals list. One per core. The topology (layers*perlayer) is randomly chosen
+            //Populates the PoliceAcademy list. One per core. The topology (layers*perlayer) is randomly chosen
             //for each Individual between the limits set in the gui. Then, backgroundWorkerTrainer is started
             //which will train each Individual in parallel.
 
@@ -377,9 +390,26 @@ namespace Gui
                 int perLayer = r.Next((int)numericUpDownPerLayerMin.Value, (int)numericUpDownPerLayerMax.Value + 1);
 
                 Individual individual = new Individual(TrainingSet[hType].ElementAt(0).hist.Length, layers, perLayer, hType);
-                Individuals.Add(individual);
+                PoliceAcademy.Add(individual);
             }
             backgroundWorkerTrainer.RunWorkerAsync();
+        }
+        
+        private void buttonLoadNets_Click(object sender, EventArgs e)
+        {
+            DialogResult = openFileDialog1.ShowDialog();
+
+            try
+            {
+                using (Stream stream = File.Open(openFileDialog1.FileName, FileMode.Open))
+                {
+                    BinaryFormatter bin = new BinaryFormatter();
+                    PickledBrains = (List<Individual>)bin.Deserialize(stream);
+                }
+            }
+            catch (IOException)
+            {
+            }
         }
     }
 }
