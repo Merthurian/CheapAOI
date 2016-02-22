@@ -6,7 +6,7 @@ using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Windows.Forms;
-using Histograms;
+using DataSet;
 using System.IO;
 using System.Threading;
 using System.Runtime.Serialization.Formatters.Binary;
@@ -19,7 +19,10 @@ namespace Gui
 
         string[] validationImages;  //File names
         string[] trainImages;       //
-
+        
+        string goodTextBoxBuffer = "";
+        string badTextBoxBuffer = "";
+        
         List<HistData>[] TrainingSet = new List<HistData>[4];
         List<HistData>[] ValidationSet = new List<HistData>[4];
 
@@ -73,16 +76,16 @@ namespace Gui
                     if (file.Contains("bad"))
                         isgood = false;
 
-                    r.hist = Histogram.DoHistogram(new Bitmap(file), (int)Histogram.Types.R);
+                    r.hist = ImageData.GetData(new Bitmap(file), (int)ImageData.Types.R);
                     r.name = "R";
                     r.good = isgood;
-                    g.hist = Histogram.DoHistogram(new Bitmap(file), (int)Histogram.Types.G);
+                    g.hist = ImageData.GetData(new Bitmap(file), (int)ImageData.Types.G);
                     g.name = "G";
                     g.good = isgood;
-                    b.hist = Histogram.DoHistogram(new Bitmap(file), (int)Histogram.Types.B);
+                    b.hist = ImageData.GetData(new Bitmap(file), (int)ImageData.Types.B);
                     b.name = "B";
                     b.good = isgood;
-                    hs.hist = Histogram.DoHistogram(new Bitmap(file), (int)Histogram.Types.HS);
+                    hs.hist = ImageData.GetData(new Bitmap(file), (int)ImageData.Types.HS);
                     hs.name = "HS";
                     hs.good = isgood;
 
@@ -118,16 +121,16 @@ namespace Gui
                     if (file.Contains("bad"))
                         isgood = false;
 
-                    r.hist = Histogram.DoHistogram(new Bitmap(file), (int)Histogram.Types.R);
+                    r.hist = ImageData.GetData(new Bitmap(file), (int)ImageData.Types.R);
                     r.name = "R";
                     r.good = isgood;
-                    g.hist = Histogram.DoHistogram(new Bitmap(file), (int)Histogram.Types.G);
+                    g.hist = ImageData.GetData(new Bitmap(file), (int)ImageData.Types.G);
                     g.name = "G";
                     g.good = isgood;
-                    b.hist = Histogram.DoHistogram(new Bitmap(file), (int)Histogram.Types.B);
+                    b.hist = ImageData.GetData(new Bitmap(file), (int)ImageData.Types.B);
                     b.name = "B";
                     b.good = isgood;
-                    hs.hist = Histogram.DoHistogram(new Bitmap(file), (int)Histogram.Types.HS);
+                    hs.hist = ImageData.GetData(new Bitmap(file), (int)ImageData.Types.HS);
                     hs.name = "HS";
                     hs.good = isgood;
 
@@ -156,10 +159,7 @@ namespace Gui
             ValidationSet[1] = validationG;
             ValidationSet[2] = validationB;
             ValidationSet[3] = validationHS;
-        }
-
-        string goodTextBoxBuffer = "";
-        string badTextBoxBuffer = "";
+        }      
 
         #region backgroundWorkerLoadData
         private void backgroundWorkerLoadData_ProgressChanged(object sender, ProgressChangedEventArgs e)
@@ -281,6 +281,9 @@ namespace Gui
             bool done = false;
             while (!done)
             {
+                if (backgroundWorkerTrainer.CancellationPending)
+                    return;
+
                 int rNewLayers = r.Next((int)numericUpDownLayersMin.Value, (int)numericUpDownLayersMax.Value + 1);
                 int rNewPerLayer = r.Next((int)numericUpDownPerLayerMin.Value, (int)numericUpDownPerLayerMax.Value + 1);
                 //These are used in case a new Individual needs to be created. We can change these settings in the gui
@@ -372,7 +375,10 @@ namespace Gui
 
         private void backgroundWorkerTrainer_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
-            saveCouncilOfElrond();
+            if(!e.Cancelled)
+                saveCouncilOfElrond();
+            buttonCancel.Enabled = false;
+            buttonTrain.Enabled = true;
         } 
         #endregion
 
@@ -393,6 +399,8 @@ namespace Gui
                 PoliceAcademy.Add(individual);
             }
             backgroundWorkerTrainer.RunWorkerAsync();
+            buttonTrain.Enabled = false;
+            buttonCancel.Enabled = true;
         }
         
         private void buttonLoadNets_Click(object sender, EventArgs e)
@@ -411,5 +419,11 @@ namespace Gui
             {
             }
         }
+
+        private void buttonCancel_Click(object sender, EventArgs e)
+        {
+            backgroundWorkerTrainer.CancelAsync();
+            buttonCancel.Enabled = false;
+        }      
     }
 }

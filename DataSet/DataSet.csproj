@@ -8,7 +8,7 @@
     <ProjectGuid>{F8EA169E-3BC6-4B80-B309-21836D0CB48F}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Histograms</RootNamespace>
+    <RootNamespace>DataSet</RootNamespace>
     <AssemblyName>Histograms</AssemblyName>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
@@ -41,7 +41,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Histograms.cs" />
+    <Compile Include="DataSet.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

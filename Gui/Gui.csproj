@@ -79,9 +79,9 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Histograms\Histograms.csproj">
+    <ProjectReference Include="..\DataSet\DataSet.csproj">
       <Project>{F8EA169E-3BC6-4B80-B309-21836D0CB48F}</Project>
-      <Name>Histograms</Name>
+      <Name>DataSet</Name>
     </ProjectReference>
     <ProjectReference Include="..\NeuralNetwork\NeuralNetwork.csproj">
       <Project>{8895EEF3-0A91-456A-AE07-2C820EBB38D9}</Project>

@@ -32,6 +32,7 @@
             this.backgroundWorkerLoadData = new System.ComponentModel.BackgroundWorker();
             this.folderBrowserDialogData = new System.Windows.Forms.FolderBrowserDialog();
             this.panelMain = new System.Windows.Forms.Panel();
+            this.buttonCancel = new System.Windows.Forms.Button();
             this.buttonLoadNets = new System.Windows.Forms.Button();
             this.label8 = new System.Windows.Forms.Label();
             this.label7 = new System.Windows.Forms.Label();
@@ -69,9 +70,9 @@
             // 
             // progressBarGeneral
             // 
-            this.progressBarGeneral.Location = new System.Drawing.Point(12, 554);
+            this.progressBarGeneral.Location = new System.Drawing.Point(12, 408);
             this.progressBarGeneral.Name = "progressBarGeneral";
-            this.progressBarGeneral.Size = new System.Drawing.Size(1106, 23);
+            this.progressBarGeneral.Size = new System.Drawing.Size(947, 23);
             this.progressBarGeneral.TabIndex = 0;
             // 
             // backgroundWorkerLoadData
@@ -83,6 +84,7 @@
             // 
             // panelMain
             // 
+            this.panelMain.Controls.Add(this.buttonCancel);
             this.panelMain.Controls.Add(this.buttonLoadNets);
             this.panelMain.Controls.Add(this.label8);
             this.panelMain.Controls.Add(this.label7);
@@ -96,8 +98,19 @@
             this.panelMain.Enabled = false;
             this.panelMain.Location = new System.Drawing.Point(12, 12);
             this.panelMain.Name = "panelMain";
-            this.panelMain.Size = new System.Drawing.Size(1106, 536);
+            this.panelMain.Size = new System.Drawing.Size(947, 390);
             this.panelMain.TabIndex = 1;
+            // 
+            // buttonCancel
+            // 
+            this.buttonCancel.Enabled = false;
+            this.buttonCancel.Location = new System.Drawing.Point(91, 221);
+            this.buttonCancel.Name = "buttonCancel";
+            this.buttonCancel.Size = new System.Drawing.Size(75, 23);
+            this.buttonCancel.TabIndex = 28;
+            this.buttonCancel.Text = "Cancel";
+            this.buttonCancel.UseVisualStyleBackColor = true;
+            this.buttonCancel.Click += new System.EventHandler(this.buttonCancel_Click);
             // 
             // buttonLoadNets
             // 
@@ -374,7 +387,7 @@
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(1130, 589);
+            this.ClientSize = new System.Drawing.Size(967, 434);
             this.Controls.Add(this.panelMain);
             this.Controls.Add(this.progressBarGeneral);
             this.Name = "Form1";
@@ -425,6 +438,7 @@
         private System.Windows.Forms.Button buttonLoadNets;
         private System.Windows.Forms.OpenFileDialog openFileDialog1;
         private System.Windows.Forms.SaveFileDialog saveFileDialog1;
+        private System.Windows.Forms.Button buttonCancel;
     }
 }
 

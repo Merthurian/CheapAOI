@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 11.00
 # Visual Studio 2010
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NeuralNetwork", "NeuralNetwork\NeuralNetwork.csproj", "{8895EEF3-0A91-456A-AE07-2C820EBB38D9}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Histograms", "Histograms\Histograms.csproj", "{F8EA169E-3BC6-4B80-B309-21836D0CB48F}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DataSet", "DataSet\DataSet.csproj", "{F8EA169E-3BC6-4B80-B309-21836D0CB48F}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Gui", "Gui\Gui.csproj", "{E5802CD3-A1A6-4001-B668-B2597A6D1C2C}"
 EndProject

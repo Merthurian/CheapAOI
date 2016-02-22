@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Drawing;
 
-namespace Histograms
+namespace DataSet
 {
     public struct HistData
     {
@@ -15,7 +15,7 @@ namespace Histograms
         public string filename;
     }
 
-    public class Histogram
+    public class ImageData
     {
         public enum Types
         {
@@ -23,7 +23,8 @@ namespace Histograms
             G,
             B,
             RGB,
-            HS
+            HS,
+            SI//Sub Image
         }
 
         public static double[] NormalizeData(IEnumerable<double> data, double min, double max)
@@ -38,9 +39,9 @@ namespace Histograms
                 .ToArray();
         }
 
-        public static double[] DoHistogram(Bitmap bitmap, int type)
+        public static double[] GetData(Bitmap bitmap, int type)
         {
-            double[] hist;
+            double[] data;
             int total = 0;
 
             switch (type)
@@ -48,7 +49,7 @@ namespace Histograms
                 #region R
                 case (int)Types.R:
 
-                    hist = new double[32];
+                    data = new double[32];
 
                     total = 0;
 
@@ -60,22 +61,22 @@ namespace Histograms
 
                             var r = Color.FromArgb(pixel.ToArgb()).R;
 
-                            hist[r / 8] += 1;
+                            data[r / 8] += 1;
                             total += 1;
                         }
                     }
 
-                    for (int i = 0; i < hist.Length; i++)
+                    for (int i = 0; i < data.Length; i++)
                     {
-                        hist[i] = hist[i] / total;
+                        data[i] = data[i] / total;
                     }
 
-                    return NormalizeData(hist, 0, 1);
+                    return NormalizeData(data, 0, 1);
                 #endregion
 
                 #region G
                 case (int)Types.G:
-                    hist = new double[32];
+                    data = new double[32];
 
                     total = 0;
 
@@ -87,22 +88,22 @@ namespace Histograms
 
                             var r = Color.FromArgb(pixel.ToArgb()).G;
 
-                            hist[r / 8] += 1;
+                            data[r / 8] += 1;
                             total += 1;
                         }
                     }
 
-                    for (int i = 0; i < hist.Length; i++)
+                    for (int i = 0; i < data.Length; i++)
                     {
-                        hist[i] = hist[i] / total;
+                        data[i] = data[i] / total;
                     }
 
-                    return NormalizeData(hist, 0, 1);
+                    return NormalizeData(data, 0, 1);
                 #endregion
 
                 #region B
                 case (int)Types.B:
-                    hist = new double[32];
+                    data = new double[32];
 
                     total = 0;
 
@@ -114,43 +115,43 @@ namespace Histograms
 
                             var r = Color.FromArgb(pixel.ToArgb()).B;
 
-                            hist[r / 8] += 1;
+                            data[r / 8] += 1;
                             total += 1;
                         }
                     }
 
-                    for (int i = 0; i < hist.Length; i++)
+                    for (int i = 0; i < data.Length; i++)
                     {
-                        hist[i] = hist[i] / total;
+                        data[i] = data[i] / total;
                     }
 
-                    return NormalizeData(hist, 0, 1);
+                    return NormalizeData(data, 0, 1);
                 #endregion
 
                 #region RGB
                 case (int)Types.RGB:
-                    hist = new double[96];
+                    data = new double[96];
 
-                    double[] histR = DoHistogram(bitmap, (int)Types.R);
-                    double[] histG = DoHistogram(bitmap, (int)Types.B);
-                    double[] histB = DoHistogram(bitmap, (int)Types.G);
+                    double[] histR = GetData(bitmap, (int)Types.R);
+                    double[] histG = GetData(bitmap, (int)Types.B);
+                    double[] histB = GetData(bitmap, (int)Types.G);
 
                     for (int i = 0; i < 32; i++)
                     {
-                        hist[i] = histR[i];
+                        data[i] = histR[i];
 
-                        hist[i + 32] = histG[i];
+                        data[i + 32] = histG[i];
 
-                        hist[i + 64] = histB[i];
+                        data[i + 64] = histB[i];
                     }
 
-                    return hist;
+                    return data;
                 #endregion
 
                 #region HSV
                 case (int)Types.HS:
 
-                    hist = new double[37];
+                    data = new double[37];
 
                     total = 0;
 
@@ -162,19 +163,19 @@ namespace Histograms
 
                             var r = Color.FromArgb(pixel.ToArgb()).R;
 
-                            hist[r / 8] += 1;
+                            data[r / 8] += 1;
                             total += 1;
                         }
                     }
 
-                    for (int i = 0; i < hist.Length; i++)
+                    for (int i = 0; i < data.Length; i++)
                     {
-                        hist[i] = hist[i] / total;
+                        data[i] = data[i] / total;
                     }
 
-                    return NormalizeData(hist, 0, 1);
+                    return NormalizeData(data, 0, 1);
                 #endregion
-                    
+
                 default:
                     return new double[] { 0 };
             }
