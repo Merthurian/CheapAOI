@@ -6,7 +6,7 @@ using System.Drawing;
 
 namespace DataSet
 {
-    public struct HistData
+    public struct pictureData
     {
         public double[] hist;
         public bool good;
@@ -21,9 +21,9 @@ namespace DataSet
             R,
             G,
             B,
-            RGB,
             HS,
-            SI//Sub Image
+            SI,//Sub Image
+            RGB
         }
 
         public static double[] NormalizeData(IEnumerable<double> data, double min, double max)
@@ -42,7 +42,7 @@ namespace DataSet
         {
             double[] data;
             int total = 0;
-
+            
             switch (type)
             {
                 #region R

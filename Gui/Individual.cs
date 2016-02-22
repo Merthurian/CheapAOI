@@ -8,11 +8,20 @@ using DataSet;
 namespace Gui
 {
     [Serializable()]
+    public struct Rectangle
+    {
+        public int x;
+        public int y;
+        public int w;
+        public int h;
+    }
+
+    [Serializable()]
     class Individual
     {
         static Random r = new Random();
 
-        public NN nn; //Neural Network
+        public NN nn;               //Neural Network
 
         public int dataType;        //Currently, When individuals are created, they are randomy assigned one of 4 histograms.
                                     //This variable serves as an index to the TrainingSet and ValidationSet lists when passing input
@@ -27,12 +36,21 @@ namespace Gui
         public bool goodOne = false;    //
 
         public double validationScore = 0;
-        
-        public Individual(int _ins, int _layers, int _perlayer, int histType)
+
+        public Rectangle rectangle;     //Used for nets that look directly at a sub image
+                
+        public Individual(int _ins, int _layers, int _perlayer, int histType, Rectangle rect)
         {
             ID = nextID++;
             dataType = histType;
-           
+          
+            if (dataType == (int)ImageData.Types.SI)
+            {
+                rectangle = rect;
+
+                _ins = rect.w * rect.h * 3; //width * hight * rgb
+            }
+
             nn = new NN(_ins, 2, _layers, _perlayer);
         }
 

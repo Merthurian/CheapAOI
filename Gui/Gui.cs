@@ -23,8 +23,8 @@ namespace Gui
         string goodTextBoxBuffer = "";
         string badTextBoxBuffer = "";
         
-        List<HistData>[] TrainingSet = new List<HistData>[4];
-        List<HistData>[] ValidationSet = new List<HistData>[4];
+        List<pictureData>[] TrainingSet = new List<pictureData>[4];
+        List<pictureData>[] ValidationSet = new List<pictureData>[4];
 
         List<Individual> TrainingPool = new List<Individual>();     //Training pool
         List<Individual> GoodNets = new List<Individual>();         //Good ones found during training
@@ -51,15 +51,15 @@ namespace Gui
 
         private void getPics()
         {
-            List<HistData> trainingR = new List<HistData>();
-            List<HistData> trainingG = new List<HistData>();
-            List<HistData> trainingB = new List<HistData>();
-            List<HistData> trainingHS = new List<HistData>();
+            List<pictureData> trainingR = new List<pictureData>();
+            List<pictureData> trainingG = new List<pictureData>();
+            List<pictureData> trainingB = new List<pictureData>();
+            List<pictureData> trainingHS = new List<pictureData>();
 
-            List<HistData> validationR = new List<HistData>();
-            List<HistData> validationG = new List<HistData>();
-            List<HistData> validationB = new List<HistData>();
-            List<HistData> validationHS = new List<HistData>();
+            List<pictureData> validationR = new List<pictureData>();
+            List<pictureData> validationG = new List<pictureData>();
+            List<pictureData> validationB = new List<pictureData>();
+            List<pictureData> validationHS = new List<pictureData>();
 
             int todo = trainImages.Count() + validationImages.Count();  //For progress bar
             int doneIndex = 0;                                          //
@@ -68,23 +68,26 @@ namespace Gui
             {
                 if (file.Contains(".jpg"))
                 {
-                    HistData r = new HistData();
-                    HistData g = new HistData();
-                    HistData b = new HistData();
-                    HistData hs = new HistData();
+                    pictureData r = new pictureData();
+                    pictureData g = new pictureData();
+                    pictureData b = new pictureData();
+                    pictureData hs = new pictureData();
 
                     bool isgood = true;
 
                     if (file.Contains("bad"))//This is naughty .. make sure the path doesn't contain this word or there'll be chaos
                         isgood = false;
 
-                    r.hist = ImageData.GetData(new Bitmap(file), (int)ImageData.Types.R);
+                    Bitmap bitmap = new Bitmap(file);
+
+                    r.hist = ImageData.GetData(bitmap, (int)ImageData.Types.R);
                     r.good = isgood;
-                    g.hist = ImageData.GetData(new Bitmap(file), (int)ImageData.Types.G);
+                    r.bitmap = bitmap; //Chucking this here for the time being.
+                    g.hist = ImageData.GetData(bitmap, (int)ImageData.Types.G);
                     g.good = isgood;
-                    b.hist = ImageData.GetData(new Bitmap(file), (int)ImageData.Types.B);
+                    b.hist = ImageData.GetData(bitmap, (int)ImageData.Types.B);
                     b.good = isgood;
-                    hs.hist = ImageData.GetData(new Bitmap(file), (int)ImageData.Types.HS);
+                    hs.hist = ImageData.GetData(bitmap, (int)ImageData.Types.HS);
                     hs.good = isgood;
 
                     r.filename = file;
@@ -108,18 +111,21 @@ namespace Gui
             {
                 if (file.Contains(".jpg"))
                 {
-                    HistData r = new HistData();
-                    HistData g = new HistData();
-                    HistData b = new HistData();
-                    HistData hs = new HistData();
+                    pictureData r = new pictureData();
+                    pictureData g = new pictureData();
+                    pictureData b = new pictureData();
+                    pictureData hs = new pictureData();
 
                     bool isgood = true;
 
                     if (file.Contains("bad"))
                         isgood = false;
 
+                    Bitmap bitmap = new Bitmap(file);
+
                     r.hist = ImageData.GetData(new Bitmap(file), (int)ImageData.Types.R);
                     r.good = isgood;
+                    r.bitmap = bitmap; //Chucking this here for the time being.
                     g.hist = ImageData.GetData(new Bitmap(file), (int)ImageData.Types.G);
                     g.good = isgood;
                     b.hist = ImageData.GetData(new Bitmap(file), (int)ImageData.Types.B);
@@ -172,7 +178,7 @@ namespace Gui
         }
         #endregion        
 
-        public void saveCouncilOfElrond()
+        public void saveGoodNets()
         {
             var result = saveFileDialog1.ShowDialog();
 
@@ -205,13 +211,39 @@ namespace Gui
 
             int correct = 0;
 
-            foreach (var v in ValidationSet[h])
+            if (h != (int)DataSet.ImageData.Types.SI)
             {
-                if (individual.FF(v.hist, false, v.good))
-                    correct++;
+                foreach (var v in ValidationSet[h])
+                {
+                    if (individual.FF(v.hist, false, v.good))
+                        correct++;
+                }
+            }
+            else
+            {
+                foreach (var v in ValidationSet[0])
+                {
+                    double[] rgbArray = new double[individual.nn.inputLayer.Count - 2];
+
+                    int index = 0;
+                    
+                    for (int x = 0; x < individual.rectangle.w; x++)
+                    {
+                        for (int y = 0; y < individual.rectangle.h; y++)
+                        {
+                            Color c = v.bitmap.GetPixel(individual.rectangle.x + x, individual.rectangle.y + y);
+                            rgbArray[index++] = (double)c.R / 255;
+                            rgbArray[index++] = (double)c.G / 255;
+                            rgbArray[index++] = (double)c.B / 255;
+                        }
+                    }
+
+                    if (individual.FF(rgbArray, false, v.good))
+                        correct++;
+                }
             }
 
-            double d = ((double)correct / (double)ValidationSet[h].Count);
+            double d = ((double)correct / (double)ValidationSet[0].Count);
 
             if (d > (double)numericUpDownValidationThreshold.Value)
                 individual.training = false;//flag for promotion 
@@ -220,7 +252,7 @@ namespace Gui
             return correct;
         }
 
-        private bool ValidateCouncilOfElrond()
+        private bool ValidateGoodNets()
         {
             int imagesPassed = 0;
 
@@ -228,16 +260,42 @@ namespace Gui
 
             for (int v = 0; v < ValidationSet[0].Count; v++)                            //For each image
             {
-                int c = 0;                                                              //Count the number of nets in the list that get the correct answer
+                int correct = 0;                                                              //Count the number of nets in the list that get the correct answer
                 foreach (var net in GoodNets)
-                {                    
-                    if (net.FF(ValidationSet[net.dataType].ElementAt(v).hist,      //FF returns a bool determined by whether it classifies the image correctly
-                                false,                                                  //Don't do back prop
-                                ValidationSet[net.dataType].ElementAt(v).good))    //The correct answer
-                        c++;
+                {
+
+
+                    if (radioButtonSI.Checked)
+                    {
+                        double[] rgbArray = new double[net.nn.inputLayer.Count - 2];
+
+                        int index = 0;
+
+                        for (int x = 0; x < net.rectangle.w; x++)
+                        {
+                            for (int y = 0; y < net.rectangle.h; y++)
+                            {
+                                Color c = ValidationSet[0].ElementAt(v).bitmap.GetPixel(net.rectangle.x + x, net.rectangle.y + y);
+                                rgbArray[index++] = (double)c.R / 255;
+                                rgbArray[index++] = (double)c.G / 255;
+                                rgbArray[index++] = (double)c.B / 255;
+                            }
+                        }
+
+                        if (net.FF(rgbArray, false, ValidationSet[0].ElementAt(v).good))
+                            correct++;
+
+                    }
+                    else
+                    {
+                        if (net.FF(ValidationSet[net.dataType].ElementAt(v).hist,      //FF returns a bool determined by whether it classifies the image correctly
+                                                                        false,                                                  //Don't do back prop
+                                                                        ValidationSet[net.dataType].ElementAt(v).good))    //The correct answer
+                            correct++;
+                    }
                 }
 
-                if (c <= GoodNets.Count / 2)                                     //if theres ! a majority of correct answers
+                if (correct <= GoodNets.Count / 2)                                     //if theres ! a majority of correct answers
                     imagesFailed.Add(v);                                                //Add this image to the list
                 else
                     imagesPassed++;                                                     //increment this
@@ -258,12 +316,41 @@ namespace Gui
             int count = 0;
             int maxCycles = 1000;
 
-            while (count < maxCycles)
+            if (h == (int)DataSet.ImageData.Types.SI)
             {
-                var histogram = TrainingSet[h].ElementAt(r.Next(TrainingSet[h].Count));
-                individual.FF(histogram.hist, true, histogram.good);
+                while (count < maxCycles)
+                {
+                    double[] rgbArray = new double[individual.nn.inputLayer.Count - 2];
 
-                count++;
+                    int index = 0;
+
+                    int randomImage = r.Next(TrainingSet[0].Count);
+
+                    for (int x = 0; x < individual.rectangle.w; x++)
+                    {
+                        for (int y = 0; y < individual.rectangle.h; y++)
+                        {                            
+                            Color c = TrainingSet[0].ElementAt(randomImage).bitmap.GetPixel(individual.rectangle.x + x, individual.rectangle.y + y);
+                            rgbArray[index++] = (double)c.R/255;
+                            rgbArray[index++] = (double)c.G / 255;
+                            rgbArray[index++] = (double)c.B / 255;
+                        }
+                    }
+
+                    individual.FF(rgbArray, true, TrainingSet[0].ElementAt(randomImage).good);
+
+                    count++;
+                }
+            }
+            else
+            {
+                while (count < maxCycles)
+                {
+                    var histogram = TrainingSet[h].ElementAt(r.Next(TrainingSet[h].Count));
+                    individual.FF(histogram.hist, true, histogram.good);
+
+                    count++;
+                }
             }
 
             individual.totalCycles += maxCycles;
@@ -324,7 +411,12 @@ namespace Gui
 
                         int hType = r.Next(TrainingSet.Length);
 
-                        TrainingPool[i] = new Individual(TrainingSet[hType].ElementAt(0).hist.Length, rNewLayers, rNewPerLayer, hType);
+                        if (radioButtonSI.Checked)
+                            TrainingPool[i] = subImageIndividual();
+                        else
+                            TrainingPool[i] = histIndividual(); 
+
+                        //TrainingPool[i] = new Individual(TrainingSet[hType].ElementAt(0).hist.Length, rNewLayers, rNewPerLayer, hType, new Rectangle());
                     }
 
                     if (TrainingPool[i].totalCycles >= (int)numericUpDownMaxCycles.Value)
@@ -333,8 +425,11 @@ namespace Gui
 
                         Individual old = TrainingPool[i];
 
-                        TrainingPool[i] = new Individual(TrainingSet[hType].ElementAt(0).hist.Length, rNewLayers, rNewPerLayer, hType);
-
+                        if (radioButtonSI.Checked)
+                            TrainingPool[i] = subImageIndividual();
+                        else
+                            TrainingPool[i] = histIndividual(); 
+                                                
                         badTextBoxBuffer += old.info();
                     }
 
@@ -343,7 +438,7 @@ namespace Gui
 
                 if (GoodNets.Count >= (int)numericUpDownGoodOnes.Value)
                 {
-                    done = ValidateCouncilOfElrond();
+                    done = ValidateGoodNets();
                     if (!done)
                         GoodNets.RemoveAt(0); //FIFO
                 }
@@ -369,11 +464,42 @@ namespace Gui
         private void backgroundWorkerTrainer_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
             if(!e.Cancelled)
-                saveCouncilOfElrond();
+                saveGoodNets();
             buttonCancel.Enabled = false;
             buttonTrain.Enabled = true;
         } 
         #endregion
+
+        private Individual histIndividual()
+        {
+            int hType = r.Next(4);
+
+            int layers = r.Next((int)numericUpDownLayersMin.Value, (int)numericUpDownLayersMax.Value + 1);
+            int perLayer = r.Next((int)numericUpDownPerLayerMin.Value, (int)numericUpDownPerLayerMax.Value + 1);
+
+            return new Individual(TrainingSet[hType].ElementAt(0).hist.Length, layers, perLayer, hType, new Rectangle()); 
+        }
+
+        private Individual subImageIndividual()
+        {
+            int layers = r.Next((int)numericUpDownLayersMin.Value, (int)numericUpDownLayersMax.Value + 1);
+            int perLayer = r.Next((int)numericUpDownPerLayerMin.Value, (int)numericUpDownPerLayerMax.Value + 1);
+
+            int width = r.Next((int)numericUpDownSIWMin.Value, (int)numericUpDownSIWMax.Value);
+            int height = r.Next((int)numericUpDownSIHMin.Value, (int)numericUpDownSIHMax.Value);
+
+            Rectangle rect = new Rectangle();
+            rect.w = width;
+            rect.h = height;
+
+            int imageWidth = TrainingSet[0].ElementAt(0).bitmap.Width;
+            int imageHeight = TrainingSet[0].ElementAt(0).bitmap.Height;
+
+            rect.x = r.Next(0, imageWidth - width);
+            rect.y = r.Next(0, imageHeight - height);
+
+            return new Individual(width * height * 3, layers, perLayer, (int)DataSet.ImageData.Types.SI, rect);
+        }
 
         private void buttonTrain_Click(object sender, EventArgs e)
         {
@@ -383,13 +509,10 @@ namespace Gui
 
             for (int i = 0; i < Environment.ProcessorCount; i++)
             {
-                int hType = r.Next(4);
-
-                int layers = r.Next((int)numericUpDownLayersMin.Value, (int)numericUpDownLayersMax.Value + 1);
-                int perLayer = r.Next((int)numericUpDownPerLayerMin.Value, (int)numericUpDownPerLayerMax.Value + 1);
-
-                Individual individual = new Individual(TrainingSet[hType].ElementAt(0).hist.Length, layers, perLayer, hType);
-                TrainingPool.Add(individual);
+                if (radioButtonSI.Checked)
+                    TrainingPool.Add(subImageIndividual());
+                else
+                    TrainingPool.Add(histIndividual());                               
             }
             backgroundWorkerTrainer.RunWorkerAsync();
             buttonTrain.Enabled = false;

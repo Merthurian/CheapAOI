@@ -45,7 +45,7 @@
             this.label3 = new System.Windows.Forms.Label();
             this.numericUpDownMaxCycles = new System.Windows.Forms.NumericUpDown();
             this.label4 = new System.Windows.Forms.Label();
-            this.groupBoxSearchSpace = new System.Windows.Forms.GroupBox();
+            this.groupBoxNetSearch = new System.Windows.Forms.GroupBox();
             this.numericUpDownPerLayerMax = new System.Windows.Forms.NumericUpDown();
             this.numericUpDownLayersMin = new System.Windows.Forms.NumericUpDown();
             this.numericUpDownLayersMax = new System.Windows.Forms.NumericUpDown();
@@ -56,21 +56,37 @@
             this.backgroundWorkerTrainer = new System.ComponentModel.BackgroundWorker();
             this.openFileDialog1 = new System.Windows.Forms.OpenFileDialog();
             this.saveFileDialog1 = new System.Windows.Forms.SaveFileDialog();
+            this.radioButtonHist = new System.Windows.Forms.RadioButton();
+            this.radioButtonSI = new System.Windows.Forms.RadioButton();
+            this.groupBoxHistOrPic = new System.Windows.Forms.GroupBox();
+            this.groupBoxSubImageSearch = new System.Windows.Forms.GroupBox();
+            this.numericUpDownSIWMin = new System.Windows.Forms.NumericUpDown();
+            this.numericUpDownSIHMin = new System.Windows.Forms.NumericUpDown();
+            this.label5 = new System.Windows.Forms.Label();
+            this.label9 = new System.Windows.Forms.Label();
+            this.numericUpDownSIWMax = new System.Windows.Forms.NumericUpDown();
+            this.numericUpDownSIHMax = new System.Windows.Forms.NumericUpDown();
             this.panelMain.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDownGoodOnes)).BeginInit();
             this.groupBoxFilter.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDownValidationThreshold)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDownMaxCycles)).BeginInit();
-            this.groupBoxSearchSpace.SuspendLayout();
+            this.groupBoxNetSearch.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDownPerLayerMax)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDownLayersMin)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDownLayersMax)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDownPerLayerMin)).BeginInit();
+            this.groupBoxHistOrPic.SuspendLayout();
+            this.groupBoxSubImageSearch.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.numericUpDownSIWMin)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.numericUpDownSIHMin)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.numericUpDownSIWMax)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.numericUpDownSIHMax)).BeginInit();
             this.SuspendLayout();
             // 
             // progressBarGeneral
             // 
-            this.progressBarGeneral.Location = new System.Drawing.Point(12, 408);
+            this.progressBarGeneral.Location = new System.Drawing.Point(12, 413);
             this.progressBarGeneral.Name = "progressBarGeneral";
             this.progressBarGeneral.Size = new System.Drawing.Size(947, 23);
             this.progressBarGeneral.TabIndex = 0;
@@ -84,6 +100,8 @@
             // 
             // panelMain
             // 
+            this.panelMain.Controls.Add(this.groupBoxSubImageSearch);
+            this.panelMain.Controls.Add(this.groupBoxHistOrPic);
             this.panelMain.Controls.Add(this.buttonCancel);
             this.panelMain.Controls.Add(this.buttonLoadNets);
             this.panelMain.Controls.Add(this.label8);
@@ -93,18 +111,18 @@
             this.panelMain.Controls.Add(this.label6);
             this.panelMain.Controls.Add(this.numericUpDownGoodOnes);
             this.panelMain.Controls.Add(this.groupBoxFilter);
-            this.panelMain.Controls.Add(this.groupBoxSearchSpace);
+            this.panelMain.Controls.Add(this.groupBoxNetSearch);
             this.panelMain.Controls.Add(this.buttonTrain);
             this.panelMain.Enabled = false;
             this.panelMain.Location = new System.Drawing.Point(12, 12);
             this.panelMain.Name = "panelMain";
-            this.panelMain.Size = new System.Drawing.Size(947, 390);
+            this.panelMain.Size = new System.Drawing.Size(947, 395);
             this.panelMain.TabIndex = 1;
             // 
             // buttonCancel
             // 
             this.buttonCancel.Enabled = false;
-            this.buttonCancel.Location = new System.Drawing.Point(91, 221);
+            this.buttonCancel.Location = new System.Drawing.Point(102, 361);
             this.buttonCancel.Name = "buttonCancel";
             this.buttonCancel.Size = new System.Drawing.Size(75, 23);
             this.buttonCancel.TabIndex = 28;
@@ -114,7 +132,7 @@
             // 
             // buttonLoadNets
             // 
-            this.buttonLoadNets.Location = new System.Drawing.Point(9, 323);
+            this.buttonLoadNets.Location = new System.Drawing.Point(439, 338);
             this.buttonLoadNets.Name = "buttonLoadNets";
             this.buttonLoadNets.Size = new System.Drawing.Size(75, 23);
             this.buttonLoadNets.TabIndex = 27;
@@ -161,7 +179,7 @@
             // label6
             // 
             this.label6.AutoSize = true;
-            this.label6.Location = new System.Drawing.Point(84, 198);
+            this.label6.Location = new System.Drawing.Point(95, 338);
             this.label6.Name = "label6";
             this.label6.Size = new System.Drawing.Size(59, 13);
             this.label6.TabIndex = 22;
@@ -174,7 +192,7 @@
             0,
             0,
             0});
-            this.numericUpDownGoodOnes.Location = new System.Drawing.Point(9, 196);
+            this.numericUpDownGoodOnes.Location = new System.Drawing.Point(20, 336);
             this.numericUpDownGoodOnes.Maximum = new decimal(new int[] {
             99,
             0,
@@ -200,7 +218,7 @@
             this.groupBoxFilter.Controls.Add(this.label3);
             this.groupBoxFilter.Controls.Add(this.numericUpDownMaxCycles);
             this.groupBoxFilter.Controls.Add(this.label4);
-            this.groupBoxFilter.Location = new System.Drawing.Point(3, 91);
+            this.groupBoxFilter.Location = new System.Drawing.Point(3, 179);
             this.groupBoxFilter.Name = "groupBoxFilter";
             this.groupBoxFilter.Size = new System.Drawing.Size(189, 73);
             this.groupBoxFilter.TabIndex = 20;
@@ -270,20 +288,20 @@
             this.label4.TabIndex = 14;
             this.label4.Text = "Max Cycles";
             // 
-            // groupBoxSearchSpace
+            // groupBoxNetSearch
             // 
-            this.groupBoxSearchSpace.Controls.Add(this.numericUpDownPerLayerMax);
-            this.groupBoxSearchSpace.Controls.Add(this.numericUpDownLayersMin);
-            this.groupBoxSearchSpace.Controls.Add(this.numericUpDownLayersMax);
-            this.groupBoxSearchSpace.Controls.Add(this.numericUpDownPerLayerMin);
-            this.groupBoxSearchSpace.Controls.Add(this.label1);
-            this.groupBoxSearchSpace.Controls.Add(this.label2);
-            this.groupBoxSearchSpace.Location = new System.Drawing.Point(3, 3);
-            this.groupBoxSearchSpace.Name = "groupBoxSearchSpace";
-            this.groupBoxSearchSpace.Size = new System.Drawing.Size(223, 82);
-            this.groupBoxSearchSpace.TabIndex = 19;
-            this.groupBoxSearchSpace.TabStop = false;
-            this.groupBoxSearchSpace.Text = "Search Space";
+            this.groupBoxNetSearch.Controls.Add(this.numericUpDownPerLayerMax);
+            this.groupBoxNetSearch.Controls.Add(this.numericUpDownLayersMin);
+            this.groupBoxNetSearch.Controls.Add(this.numericUpDownLayersMax);
+            this.groupBoxNetSearch.Controls.Add(this.numericUpDownPerLayerMin);
+            this.groupBoxNetSearch.Controls.Add(this.label1);
+            this.groupBoxNetSearch.Controls.Add(this.label2);
+            this.groupBoxNetSearch.Location = new System.Drawing.Point(3, 3);
+            this.groupBoxNetSearch.Name = "groupBoxNetSearch";
+            this.groupBoxNetSearch.Size = new System.Drawing.Size(223, 82);
+            this.groupBoxNetSearch.TabIndex = 19;
+            this.groupBoxNetSearch.TabStop = false;
+            this.groupBoxNetSearch.Text = "Net Search";
             // 
             // numericUpDownPerLayerMax
             // 
@@ -363,7 +381,7 @@
             // 
             // buttonTrain
             // 
-            this.buttonTrain.Location = new System.Drawing.Point(9, 222);
+            this.buttonTrain.Location = new System.Drawing.Point(20, 362);
             this.buttonTrain.Name = "buttonTrain";
             this.buttonTrain.Size = new System.Drawing.Size(75, 23);
             this.buttonTrain.TabIndex = 12;
@@ -383,11 +401,164 @@
             // 
             this.openFileDialog1.FileName = "openFileDialog1";
             // 
+            // radioButtonHist
+            // 
+            this.radioButtonHist.AutoSize = true;
+            this.radioButtonHist.Checked = true;
+            this.radioButtonHist.Location = new System.Drawing.Point(6, 18);
+            this.radioButtonHist.Name = "radioButtonHist";
+            this.radioButtonHist.Size = new System.Drawing.Size(72, 17);
+            this.radioButtonHist.TabIndex = 29;
+            this.radioButtonHist.TabStop = true;
+            this.radioButtonHist.Text = "Histogram";
+            this.radioButtonHist.UseVisualStyleBackColor = true;
+            // 
+            // radioButtonSI
+            // 
+            this.radioButtonSI.AutoSize = true;
+            this.radioButtonSI.Location = new System.Drawing.Point(84, 19);
+            this.radioButtonSI.Name = "radioButtonSI";
+            this.radioButtonSI.Size = new System.Drawing.Size(76, 17);
+            this.radioButtonSI.TabIndex = 30;
+            this.radioButtonSI.Text = "Sub Image";
+            this.radioButtonSI.UseVisualStyleBackColor = true;
+            // 
+            // groupBoxHistOrPic
+            // 
+            this.groupBoxHistOrPic.Controls.Add(this.radioButtonSI);
+            this.groupBoxHistOrPic.Controls.Add(this.radioButtonHist);
+            this.groupBoxHistOrPic.Location = new System.Drawing.Point(14, 251);
+            this.groupBoxHistOrPic.Name = "groupBoxHistOrPic";
+            this.groupBoxHistOrPic.Size = new System.Drawing.Size(173, 49);
+            this.groupBoxHistOrPic.TabIndex = 31;
+            this.groupBoxHistOrPic.TabStop = false;
+            // 
+            // groupBoxSubImageSearch
+            // 
+            this.groupBoxSubImageSearch.Controls.Add(this.numericUpDownSIWMax);
+            this.groupBoxSubImageSearch.Controls.Add(this.numericUpDownSIHMax);
+            this.groupBoxSubImageSearch.Controls.Add(this.numericUpDownSIWMin);
+            this.groupBoxSubImageSearch.Controls.Add(this.numericUpDownSIHMin);
+            this.groupBoxSubImageSearch.Controls.Add(this.label5);
+            this.groupBoxSubImageSearch.Controls.Add(this.label9);
+            this.groupBoxSubImageSearch.Location = new System.Drawing.Point(3, 91);
+            this.groupBoxSubImageSearch.Name = "groupBoxSubImageSearch";
+            this.groupBoxSubImageSearch.Size = new System.Drawing.Size(223, 82);
+            this.groupBoxSubImageSearch.TabIndex = 32;
+            this.groupBoxSubImageSearch.TabStop = false;
+            this.groupBoxSubImageSearch.Text = "Sub Image Search";
+            // 
+            // numericUpDownSIWMin
+            // 
+            this.numericUpDownSIWMin.Location = new System.Drawing.Point(9, 22);
+            this.numericUpDownSIWMin.Maximum = new decimal(new int[] {
+            10,
+            0,
+            0,
+            0});
+            this.numericUpDownSIWMin.Minimum = new decimal(new int[] {
+            2,
+            0,
+            0,
+            0});
+            this.numericUpDownSIWMin.Name = "numericUpDownSIWMin";
+            this.numericUpDownSIWMin.Size = new System.Drawing.Size(69, 20);
+            this.numericUpDownSIWMin.TabIndex = 0;
+            this.numericUpDownSIWMin.Value = new decimal(new int[] {
+            4,
+            0,
+            0,
+            0});
+            // 
+            // numericUpDownSIHMin
+            // 
+            this.numericUpDownSIHMin.Location = new System.Drawing.Point(9, 48);
+            this.numericUpDownSIHMin.Maximum = new decimal(new int[] {
+            10,
+            0,
+            0,
+            0});
+            this.numericUpDownSIHMin.Minimum = new decimal(new int[] {
+            1,
+            0,
+            0,
+            0});
+            this.numericUpDownSIHMin.Name = "numericUpDownSIHMin";
+            this.numericUpDownSIHMin.Size = new System.Drawing.Size(69, 20);
+            this.numericUpDownSIHMin.TabIndex = 1;
+            this.numericUpDownSIHMin.Value = new decimal(new int[] {
+            4,
+            0,
+            0,
+            0});
+            // 
+            // label5
+            // 
+            this.label5.AutoSize = true;
+            this.label5.Location = new System.Drawing.Point(84, 24);
+            this.label5.Name = "label5";
+            this.label5.Size = new System.Drawing.Size(35, 13);
+            this.label5.TabIndex = 2;
+            this.label5.Text = "Width";
+            // 
+            // label9
+            // 
+            this.label9.AutoSize = true;
+            this.label9.Location = new System.Drawing.Point(84, 50);
+            this.label9.Name = "label9";
+            this.label9.Size = new System.Drawing.Size(38, 13);
+            this.label9.TabIndex = 3;
+            this.label9.Text = "Height";
+            // 
+            // numericUpDownSIWMax
+            // 
+            this.numericUpDownSIWMax.Location = new System.Drawing.Point(142, 22);
+            this.numericUpDownSIWMax.Maximum = new decimal(new int[] {
+            10,
+            0,
+            0,
+            0});
+            this.numericUpDownSIWMax.Minimum = new decimal(new int[] {
+            2,
+            0,
+            0,
+            0});
+            this.numericUpDownSIWMax.Name = "numericUpDownSIWMax";
+            this.numericUpDownSIWMax.Size = new System.Drawing.Size(69, 20);
+            this.numericUpDownSIWMax.TabIndex = 4;
+            this.numericUpDownSIWMax.Value = new decimal(new int[] {
+            4,
+            0,
+            0,
+            0});
+            // 
+            // numericUpDownSIHMax
+            // 
+            this.numericUpDownSIHMax.Location = new System.Drawing.Point(142, 48);
+            this.numericUpDownSIHMax.Maximum = new decimal(new int[] {
+            10,
+            0,
+            0,
+            0});
+            this.numericUpDownSIHMax.Minimum = new decimal(new int[] {
+            1,
+            0,
+            0,
+            0});
+            this.numericUpDownSIHMax.Name = "numericUpDownSIHMax";
+            this.numericUpDownSIHMax.Size = new System.Drawing.Size(69, 20);
+            this.numericUpDownSIHMax.TabIndex = 5;
+            this.numericUpDownSIHMax.Value = new decimal(new int[] {
+            4,
+            0,
+            0,
+            0});
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(967, 434);
+            this.ClientSize = new System.Drawing.Size(965, 442);
             this.Controls.Add(this.panelMain);
             this.Controls.Add(this.progressBarGeneral);
             this.Name = "Form1";
@@ -399,12 +570,20 @@
             this.groupBoxFilter.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDownValidationThreshold)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDownMaxCycles)).EndInit();
-            this.groupBoxSearchSpace.ResumeLayout(false);
-            this.groupBoxSearchSpace.PerformLayout();
+            this.groupBoxNetSearch.ResumeLayout(false);
+            this.groupBoxNetSearch.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDownPerLayerMax)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDownLayersMin)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDownLayersMax)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDownPerLayerMin)).EndInit();
+            this.groupBoxHistOrPic.ResumeLayout(false);
+            this.groupBoxHistOrPic.PerformLayout();
+            this.groupBoxSubImageSearch.ResumeLayout(false);
+            this.groupBoxSubImageSearch.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.numericUpDownSIWMin)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.numericUpDownSIHMin)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.numericUpDownSIWMax)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.numericUpDownSIHMax)).EndInit();
             this.ResumeLayout(false);
 
         }
@@ -427,7 +606,7 @@
         private System.Windows.Forms.NumericUpDown numericUpDownMaxCycles;
         private System.Windows.Forms.NumericUpDown numericUpDownLayersMax;
         private System.Windows.Forms.NumericUpDown numericUpDownPerLayerMax;
-        private System.Windows.Forms.GroupBox groupBoxSearchSpace;
+        private System.Windows.Forms.GroupBox groupBoxNetSearch;
         private System.Windows.Forms.GroupBox groupBoxFilter;
         private System.Windows.Forms.Label label6;
         private System.Windows.Forms.NumericUpDown numericUpDownGoodOnes;
@@ -439,6 +618,16 @@
         private System.Windows.Forms.OpenFileDialog openFileDialog1;
         private System.Windows.Forms.SaveFileDialog saveFileDialog1;
         private System.Windows.Forms.Button buttonCancel;
+        private System.Windows.Forms.GroupBox groupBoxHistOrPic;
+        private System.Windows.Forms.RadioButton radioButtonSI;
+        private System.Windows.Forms.RadioButton radioButtonHist;
+        private System.Windows.Forms.GroupBox groupBoxSubImageSearch;
+        private System.Windows.Forms.NumericUpDown numericUpDownSIWMax;
+        private System.Windows.Forms.NumericUpDown numericUpDownSIHMax;
+        private System.Windows.Forms.NumericUpDown numericUpDownSIWMin;
+        private System.Windows.Forms.NumericUpDown numericUpDownSIHMin;
+        private System.Windows.Forms.Label label5;
+        private System.Windows.Forms.Label label9;
     }
 }
 
