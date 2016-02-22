@@ -26,13 +26,16 @@ namespace Gui
         List<HistData>[] TrainingSet = new List<HistData>[4];
         List<HistData>[] ValidationSet = new List<HistData>[4];
 
-        List<Individual> PoliceAcademy = new List<Individual>();    //Training pool
-        List<Individual> CouncilOfElrond = new List<Individual>();  //Good ones found during training
-        List<Individual> PickledBrains = new List<Individual>();    //From file 
+        List<Individual> TrainingPool = new List<Individual>();     //Training pool
+        List<Individual> GoodNets = new List<Individual>();         //Good ones found during training
+        List<Individual> PickledBrains = new List<Individual>();    //From file - TODO: Stuff
 
         public Form1()
         {
             InitializeComponent();
+
+            //On startup, point to a training root folder. Must contain two folders called "train" & "validate"
+            //Histograms will be created using the contents of these folders
 
             DialogResult result = folderBrowserDialogData.ShowDialog();
             if (result == DialogResult.OK)
@@ -58,9 +61,8 @@ namespace Gui
             List<HistData> validationB = new List<HistData>();
             List<HistData> validationHS = new List<HistData>();
 
-            int todo = trainImages.Count() + validationImages.Count();
-
-            int doneIndex = 0;
+            int todo = trainImages.Count() + validationImages.Count();  //For progress bar
+            int doneIndex = 0;                                          //
 
             foreach (var file in trainImages)
             {
@@ -73,27 +75,22 @@ namespace Gui
 
                     bool isgood = true;
 
-                    if (file.Contains("bad"))
+                    if (file.Contains("bad"))//This is naughty .. make sure the path doesn't contain this word or there'll be chaos
                         isgood = false;
 
                     r.hist = ImageData.GetData(new Bitmap(file), (int)ImageData.Types.R);
-                    r.name = "R";
                     r.good = isgood;
                     g.hist = ImageData.GetData(new Bitmap(file), (int)ImageData.Types.G);
-                    g.name = "G";
                     g.good = isgood;
                     b.hist = ImageData.GetData(new Bitmap(file), (int)ImageData.Types.B);
-                    b.name = "B";
                     b.good = isgood;
                     hs.hist = ImageData.GetData(new Bitmap(file), (int)ImageData.Types.HS);
-                    hs.name = "HS";
                     hs.good = isgood;
 
                     r.filename = file;
                     g.filename = file;
                     b.filename = file;
-                    hs.filename = file;
-                    
+                    hs.filename = file;                    
 
                     trainingR.Add(r);
                     trainingG.Add(g);
@@ -122,16 +119,12 @@ namespace Gui
                         isgood = false;
 
                     r.hist = ImageData.GetData(new Bitmap(file), (int)ImageData.Types.R);
-                    r.name = "R";
                     r.good = isgood;
                     g.hist = ImageData.GetData(new Bitmap(file), (int)ImageData.Types.G);
-                    g.name = "G";
                     g.good = isgood;
                     b.hist = ImageData.GetData(new Bitmap(file), (int)ImageData.Types.B);
-                    b.name = "B";
                     b.good = isgood;
                     hs.hist = ImageData.GetData(new Bitmap(file), (int)ImageData.Types.HS);
-                    hs.name = "HS";
                     hs.good = isgood;
 
                     r.filename = file;
@@ -190,7 +183,7 @@ namespace Gui
                     using (Stream stream = File.Open(saveFileDialog1.FileName, FileMode.Create))
                     {
                         BinaryFormatter bin = new BinaryFormatter();
-                        bin.Serialize(stream, CouncilOfElrond);
+                        bin.Serialize(stream, GoodNets);
                     }
                 }
                 catch (IOException)
@@ -208,7 +201,7 @@ namespace Gui
             //an Individual net can correctly classify.
             //It also stores a ratio of correct/total
 
-            int h = individual.histogramType;
+            int h = individual.dataType;
 
             int correct = 0;
 
@@ -236,15 +229,15 @@ namespace Gui
             for (int v = 0; v < ValidationSet[0].Count; v++)                            //For each image
             {
                 int c = 0;                                                              //Count the number of nets in the list that get the correct answer
-                foreach (var net in CouncilOfElrond)
+                foreach (var net in GoodNets)
                 {                    
-                    if (net.FF(ValidationSet[net.histogramType].ElementAt(v).hist,      //FF returns a bool determined by whether it classifies the image correctly
+                    if (net.FF(ValidationSet[net.dataType].ElementAt(v).hist,      //FF returns a bool determined by whether it classifies the image correctly
                                 false,                                                  //Don't do back prop
-                                ValidationSet[net.histogramType].ElementAt(v).good))    //The correct answer
+                                ValidationSet[net.dataType].ElementAt(v).good))    //The correct answer
                         c++;
                 }
 
-                if (c <= CouncilOfElrond.Count / 2)                                     //if theres ! a majority of correct answers
+                if (c <= GoodNets.Count / 2)                                     //if theres ! a majority of correct answers
                     imagesFailed.Add(v);                                                //Add this image to the list
                 else
                     imagesPassed++;                                                     //increment this
@@ -260,7 +253,7 @@ namespace Gui
 
         private void trainThread(Individual individual)
         {
-            int h = individual.histogramType;
+            int h = individual.dataType;
 
             int count = 0;
             int maxCycles = 1000;
@@ -289,12 +282,12 @@ namespace Gui
                 //These are used in case a new Individual needs to be created. We can change these settings in the gui
                 //while this thread is running and alter this in real time
 
-                Thread[] threads = new Thread[PoliceAcademy.Count];   //Each Individual will now be given a thread and will be 
+                Thread[] threads = new Thread[TrainingPool.Count];   //Each Individual will now be given a thread and will be 
                 //trained for 1000 iterations.
 
-                for (int i = 0; i < PoliceAcademy.Count; i++)
+                for (int i = 0; i < TrainingPool.Count; i++)
                 {
-                    threads[i] = new Thread(() => trainThread(PoliceAcademy[i]));
+                    threads[i] = new Thread(() => trainThread(TrainingPool[i]));
                     threads[i].Start();
                     threads[i].Join();
                 }
@@ -315,44 +308,44 @@ namespace Gui
                     }
                 }
 
-                for (int i = 0; i < PoliceAcademy.Count; i++)
+                for (int i = 0; i < TrainingPool.Count; i++)
                 {
 
-                    if (PoliceAcademy[i].goodOne)
+                    if (TrainingPool[i].goodOne)
                     {
                         continue;
                     }
-                    if (!PoliceAcademy[i].training)//which means that it passed validation and is now being called to join the CouncilOfElrond
+                    if (!TrainingPool[i].training)//which means that it passed validation and is now being called to join the CouncilOfElrond
                     {
-                        Individual good = PoliceAcademy[i];
-                        CouncilOfElrond.Add(good);
+                        Individual good = TrainingPool[i];
+                        GoodNets.Add(good);
 
                         goodTextBoxBuffer += good.info();
 
                         int hType = r.Next(TrainingSet.Length);
 
-                        PoliceAcademy[i] = new Individual(TrainingSet[hType].ElementAt(0).hist.Length, rNewLayers, rNewPerLayer, hType);
+                        TrainingPool[i] = new Individual(TrainingSet[hType].ElementAt(0).hist.Length, rNewLayers, rNewPerLayer, hType);
                     }
 
-                    if (PoliceAcademy[i].totalCycles >= (int)numericUpDownMaxCycles.Value)
+                    if (TrainingPool[i].totalCycles >= (int)numericUpDownMaxCycles.Value)
                     {
                         int hType = r.Next(TrainingSet.Length);
 
-                        Individual old = PoliceAcademy[i];
+                        Individual old = TrainingPool[i];
 
-                        PoliceAcademy[i] = new Individual(TrainingSet[hType].ElementAt(0).hist.Length, rNewLayers, rNewPerLayer, hType);
+                        TrainingPool[i] = new Individual(TrainingSet[hType].ElementAt(0).hist.Length, rNewLayers, rNewPerLayer, hType);
 
                         badTextBoxBuffer += old.info();
                     }
 
-                    Validate(PoliceAcademy[i]);
+                    Validate(TrainingPool[i]);
                 }
 
-                if (CouncilOfElrond.Count >= (int)numericUpDownGoodOnes.Value)
+                if (GoodNets.Count >= (int)numericUpDownGoodOnes.Value)
                 {
                     done = ValidateCouncilOfElrond();
                     if (!done)
-                        CouncilOfElrond.RemoveAt(0); //FIFO
+                        GoodNets.RemoveAt(0); //FIFO
                 }
                 backgroundWorkerTrainer.ReportProgress(0);
             }
@@ -384,7 +377,7 @@ namespace Gui
 
         private void buttonTrain_Click(object sender, EventArgs e)
         {
-            //Populates the PoliceAcademy list. One per core. The topology (layers*perlayer) is randomly chosen
+            //Populates the TrainingPool list. One per core. The topology (layers*perlayer) is randomly chosen
             //for each Individual between the limits set in the gui. Then, backgroundWorkerTrainer is started
             //which will train each Individual in parallel.
 
@@ -396,7 +389,7 @@ namespace Gui
                 int perLayer = r.Next((int)numericUpDownPerLayerMin.Value, (int)numericUpDownPerLayerMax.Value + 1);
 
                 Individual individual = new Individual(TrainingSet[hType].ElementAt(0).hist.Length, layers, perLayer, hType);
-                PoliceAcademy.Add(individual);
+                TrainingPool.Add(individual);
             }
             backgroundWorkerTrainer.RunWorkerAsync();
             buttonTrain.Enabled = false;

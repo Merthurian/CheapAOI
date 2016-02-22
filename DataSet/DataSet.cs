@@ -10,7 +10,6 @@ namespace DataSet
     {
         public double[] hist;
         public bool good;
-        public string name;
         public Bitmap bitmap;
         public string filename;
     }
