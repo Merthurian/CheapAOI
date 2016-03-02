@@ -5,10 +5,10 @@ using System.Text;
 using NeuralNetwork;
 using DataSet;
 
-namespace Gui
+namespace Training
 {
     [Serializable()]
-    public struct Rectangle
+    public struct Rect
     {
         public int x;
         public int y;
@@ -17,7 +17,7 @@ namespace Gui
     }
 
     [Serializable()]
-    class Individual
+    public class Individual
     {
         static Random r = new Random();
 
@@ -37,9 +37,9 @@ namespace Gui
 
         public double validationScore = 0;
 
-        public Rectangle rectangle;     //Used for nets that look directly at a sub image
+        public Rect rectangle;     //Used for nets that look directly at a sub image
                 
-        public Individual(int _ins, int _layers, int _perlayer, int histType, Rectangle rect)
+        public Individual(int _ins, int _layers, int _perlayer, int histType, Rect rect)
         {
             ID = nextID++;
             dataType = histType;

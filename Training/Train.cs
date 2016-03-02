@@ -1,29 +1,25 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
 using System.Linq;
 using System.Text;
-using System.Windows.Forms;
 using DataSet;
 using System.IO;
-using System.Threading;
+using System.Drawing;
 using System.Runtime.Serialization.Formatters.Binary;
-using Training;
+using System.Threading;
 
-namespace Gui
+namespace Training
 {
-    public partial class Form1 : Form
+    public class Train
     {
         public static Random r = new Random();
 
         string[] validationImages;  //File names
         string[] trainImages;       //
-        
+
         string goodTextBoxBuffer = "";
         string badTextBoxBuffer = "";
-        
+
         List<pictureData>[] TrainingSet = new List<pictureData>[4];
         List<pictureData>[] ValidationSet = new List<pictureData>[4];
 
@@ -31,23 +27,12 @@ namespace Gui
         List<Individual> GoodNets = new List<Individual>();         //Good ones found during training
         List<Individual> PickledBrains = new List<Individual>();    //From file - TODO: Stuff
 
-        public Form1()
+        public Train(string folder)
         {
-            InitializeComponent();
+            trainImages = Directory.GetFiles(folder + "/train");
+            validationImages = Directory.GetFiles(folder + "/validate");
 
-            //On startup, point to a training root folder. Must contain two folders called "train" & "validate"
-            //Histograms will be created using the contents of these folders
-
-            DialogResult result = folderBrowserDialogData.ShowDialog();
-            if (result == DialogResult.OK)
-            {
-                trainImages = Directory.GetFiles(folderBrowserDialogData.SelectedPath + "/train");
-                validationImages = Directory.GetFiles(folderBrowserDialogData.SelectedPath + "/validate");
-            }
-            else
-                return;
-
-            backgroundWorkerLoadData.RunWorkerAsync();
+            getPics();
         }
 
         private void getPics()
@@ -94,7 +79,7 @@ namespace Gui
                     r.filename = file;
                     g.filename = file;
                     b.filename = file;
-                    hs.filename = file;                    
+                    hs.filename = file;
 
                     trainingR.Add(r);
                     trainingG.Add(g);
@@ -104,8 +89,6 @@ namespace Gui
                 doneIndex++;
 
                 int progress = (int)(100 * ((double)doneIndex / todo));
-
-                backgroundWorkerLoadData.ReportProgress(progress);
             }
 
             foreach (var file in validationImages)
@@ -147,8 +130,6 @@ namespace Gui
                 doneIndex++;
 
                 int progress = (int)(100 * ((double)doneIndex / todo));
-
-                backgroundWorkerLoadData.ReportProgress(progress);
             }
             TrainingSet[0] = trainingR;
             TrainingSet[1] = trainingG;
@@ -159,35 +140,13 @@ namespace Gui
             ValidationSet[1] = validationG;
             ValidationSet[2] = validationB;
             ValidationSet[3] = validationHS;
-        }      
-
-        #region backgroundWorkerLoadData
-        private void backgroundWorkerLoadData_ProgressChanged(object sender, ProgressChangedEventArgs e)
-        {
-            progressBarGeneral.Value = e.ProgressPercentage;
         }
 
-        private void backgroundWorkerLoadData_DoWork(object sender, DoWorkEventArgs e)
-        {
-            getPics();
-        }
-
-        private void backgroundWorkerLoadData_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
-        {
-            progressBarGeneral.Value = 0;
-            panelMain.Enabled = true;
-        }
-        #endregion        
-
-        public void saveGoodNets()
-        {
-            var result = saveFileDialog1.ShowDialog();
-
-            if (result == System.Windows.Forms.DialogResult.OK)
-            {
+        public void saveGoodNets(string filename)
+        {         
                 try
                 {
-                    using (Stream stream = File.Open(saveFileDialog1.FileName, FileMode.Create))
+                    using (Stream stream = File.Open(filename, FileMode.Create))
                     {
                         BinaryFormatter bin = new BinaryFormatter();
                         bin.Serialize(stream, GoodNets);
@@ -196,10 +155,8 @@ namespace Gui
                 catch (IOException)
                 {
                 }
-            }
         }
 
-        #region Training & Validation
         private int Validate(Individual individual)
         {
             //Exposes the Individual to the validation folder.
@@ -227,7 +184,7 @@ namespace Gui
                     double[] rgbArray = new double[individual.nn.inputLayer.Count - 2];
 
                     int index = 0;
-                    
+
                     for (int x = 0; x < individual.rectangle.w; x++)
                     {
                         for (int y = 0; y < individual.rectangle.h; y++)
@@ -246,7 +203,7 @@ namespace Gui
 
             double d = ((double)correct / (double)ValidationSet[0].Count);
 
-            if (d > (double)numericUpDownValidationThreshold.Value)
+            if (d > validationThresh)
                 individual.training = false;//flag for promotion 
 
             individual.validationScore = d;
@@ -266,7 +223,7 @@ namespace Gui
                 {
 
 
-                    if (radioButtonSI.Checked)
+                    if (subImage)
                     {
                         double[] rgbArray = new double[net.nn.inputLayer.Count - 2];
 
@@ -308,7 +265,7 @@ namespace Gui
                 return true;
             else
                 return false;
-        }     
+        }
 
         private void trainThread(Individual individual)
         {
@@ -330,9 +287,9 @@ namespace Gui
                     for (int x = 0; x < individual.rectangle.w; x++)
                     {
                         for (int y = 0; y < individual.rectangle.h; y++)
-                        {                            
+                        {
                             Color c = TrainingSet[0].ElementAt(randomImage).bitmap.GetPixel(individual.rectangle.x + x, individual.rectangle.y + y);
-                            rgbArray[index++] = (double)c.R/255;
+                            rgbArray[index++] = (double)c.R / 255;
                             rgbArray[index++] = (double)c.G / 255;
                             rgbArray[index++] = (double)c.B / 255;
                         }
@@ -357,16 +314,13 @@ namespace Gui
             individual.totalCycles += maxCycles;
         }
 
-        private void backgroundWorkerTrainer_DoWork(object sender, DoWorkEventArgs e)
+        private void DoWork()
         {
             bool done = false;
             while (!done)
             {
-                if (backgroundWorkerTrainer.CancellationPending)
-                    return;
-
-                int rNewLayers = r.Next((int)numericUpDownLayersMin.Value, (int)numericUpDownLayersMax.Value + 1);
-                int rNewPerLayer = r.Next((int)numericUpDownPerLayerMin.Value, (int)numericUpDownPerLayerMax.Value + 1);
+                int rNewLayers = r.Next(layersMin, layersMax + 1);
+                int rNewPerLayer = r.Next(perLayerMin, perLayerMax + 1);
                 //These are used in case a new Individual needs to be created. We can change these settings in the gui
                 //while this thread is running and alter this in real time
 
@@ -412,82 +366,76 @@ namespace Gui
 
                         int hType = r.Next(TrainingSet.Length);
 
-                        if (radioButtonSI.Checked)
+                        if (subImage)
                             TrainingPool[i] = subImageIndividual();
                         else
-                            TrainingPool[i] = histIndividual(); 
+                            TrainingPool[i] = histIndividual();
 
                         //TrainingPool[i] = new Individual(TrainingSet[hType].ElementAt(0).hist.Length, rNewLayers, rNewPerLayer, hType, new Rect());
                     }
 
-                    if (TrainingPool[i].totalCycles >= (int)numericUpDownMaxCycles.Value)
+                    if (TrainingPool[i].totalCycles >= maxCylces)
                     {
                         int hType = r.Next(TrainingSet.Length);
 
                         Individual old = TrainingPool[i];
 
-                        if (radioButtonSI.Checked)
+                        if (subImage)
                             TrainingPool[i] = subImageIndividual();
                         else
-                            TrainingPool[i] = histIndividual(); 
-                                                
+                            TrainingPool[i] = histIndividual();
+
                         badTextBoxBuffer += old.info();
                     }
 
                     Validate(TrainingPool[i]);
                 }
 
-                if (GoodNets.Count >= (int)numericUpDownGoodOnes.Value)
+                if (GoodNets.Count >= goodNetListSize)
                 {
                     done = ValidateGoodNets();
                     if (!done)
                         GoodNets.RemoveAt(0); //FIFO
                 }
-                backgroundWorkerTrainer.ReportProgress(0);
+                Report();
             }
+            //Save them
         }
 
-        private void backgroundWorkerTrainer_ProgressChanged(object sender, ProgressChangedEventArgs e)
+        private void Report()
         {
-            textBoxGood.Text += goodTextBoxBuffer;
+            //Use these buffers to report what's going on
+
+            //textBoxGood.Text += goodTextBoxBuffer;
             goodTextBoxBuffer = "";
 
-            textBoxGood.SelectionStart = textBoxGood.Text.Length;
-            textBoxGood.ScrollToCaret();
+            //textBoxGood.SelectionStart = textBoxGood.Text.Length;
+            //textBoxGood.ScrollToCaret();
 
-            textBoxBad.Text += badTextBoxBuffer;
+            //textBoxBad.Text += badTextBoxBuffer;
             badTextBoxBuffer = "";
 
-            textBoxBad.SelectionStart = textBoxBad.Text.Length;
-            textBoxBad.ScrollToCaret();
+            //textBoxBad.SelectionStart = textBoxBad.Text.Length;
+            //textBoxBad.ScrollToCaret();            
         }
-
-        private void backgroundWorkerTrainer_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
-        {
-            if(!e.Cancelled)
-                saveGoodNets();
-            buttonCancel.Enabled = false;
-            buttonTrain.Enabled = true;
-        } 
-        #endregion
-
+        
         public Individual histIndividual()
         {
             int hType = r.Next(4);
 
-            int layers = r.Next((int)numericUpDownLayersMin.Value, (int)numericUpDownLayersMax.Value + 1);
-            int perLayer = r.Next((int)numericUpDownPerLayerMin.Value, (int)numericUpDownPerLayerMax.Value + 1);
+            int layers = r.Next(layersMin, layersMax + 1);
+            int perLayer = r.Next(perLayerMin, perLayerMax + 1);
 
-            return new Individual(TrainingSet[hType].ElementAt(0).hist.Length, layers, perLayer, hType, new Rect()); 
+            return new Individual(TrainingSet[hType].ElementAt(0).hist.Length, layers, perLayer, hType, new Rect());
         }
 
         public Individual subImageIndividual()
         {
-            int layers = r.Next((int)numericUpDownLayersMin.Value, (int)numericUpDownLayersMax.Value + 1);
-            int perLayer = r.Next((int)numericUpDownPerLayerMin.Value, (int)numericUpDownPerLayerMax.Value + 1);
+            int layers = r.Next(layersMin, layersMax + 1);
+            int perLayer = r.Next(perLayerMin, perLayerMax + 1);
 
-            int width = r.Next((int)numericUpDownSIWMin.Value, (int)numericUpDownSIWMax.Value);
-            int height = r.Next((int)numericUpDownSIHMin.Value, (int)numericUpDownSIHMax.Value);
+            int width = r.Next(SIWidthMin, SIWidthMax);
+            int height = r.Next(SIHeightMin, SIHeightMax);
 
             Rect rect = new Rect();
             rect.w = width;
@@ -502,7 +450,7 @@ namespace Gui
             return new Individual(width * height * 3, layers, perLayer, (int)DataSet.ImageData.Types.SI, rect);
         }
 
-        private void buttonTrain_Click(object sender, EventArgs e)
+        private void GoGoGo()
         {
             //Populates the TrainingPool list. One per core. The topology (layers*perlayer) is randomly chosen
             //for each Individual between the limits set in the gui. Then, backgroundWorkerTrainer is started
@@ -510,23 +458,19 @@ namespace Gui
 
             for (int i = 0; i < Environment.ProcessorCount; i++)
             {
-                if (radioButtonSI.Checked)
+                if (subImage)
                     TrainingPool.Add(subImageIndividual());
                 else
-                    TrainingPool.Add(histIndividual());                               
+                    TrainingPool.Add(histIndividual());
             }
-            backgroundWorkerTrainer.RunWorkerAsync();
-            buttonTrain.Enabled = false;
-            buttonCancel.Enabled = true;
+            DoWork();
         }
-        
-        private void buttonLoadNets_Click(object sender, EventArgs e)
-        {
-            DialogResult = openFileDialog1.ShowDialog();
 
+        private void LoadNets(string filename)
+        {
             try
             {
-                using (Stream stream = File.Open(openFileDialog1.FileName, FileMode.Open))
+                using (Stream stream = File.Open(filename, FileMode.Open))
                 {
                     BinaryFormatter bin = new BinaryFormatter();
                     PickledBrains = (List<Individual>)bin.Deserialize(stream);
@@ -536,11 +480,29 @@ namespace Gui
             {
             }
         }
+        
+        public double validationThresh { get; set; }
 
-        private void buttonCancel_Click(object sender, EventArgs e)
-        {
-            backgroundWorkerTrainer.CancelAsync();
-            buttonCancel.Enabled = false;
-        }      
+        public bool subImage { get; set; }
+
+        public int layersMin { get; set; }
+
+        public int layersMax { get; set; }
+
+        public int perLayerMin { get; set; }
+
+        public int perLayerMax { get; set; }
+
+        public int maxCylces { get; set; }
+
+        public int goodNetListSize { get; set; }
+
+        public int SIWidthMin { get; set; }
+
+        public int SIWidthMax { get; set; }
+
+        public int SIHeightMin { get; set; }
+
+        public int SIHeightMax { get; set; }
     }
 }
