@@ -7,18 +7,30 @@ using System.IO;
 using System.Drawing;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Threading;
+using System.Management;
 
 namespace Training
 {
-    public class Train
+    public class TrainingReport : EventArgs
+    {
+        public string goodReport = "";
+        public string badReport = "";
+    }
+    
+    public class Trainer
     {
         public static Random r = new Random();
+
+        public Thread worker;
+        
+        public delegate void ReportHandler(Trainer t, TrainingReport e);
+        public event ReportHandler Report;
 
         string[] validationImages;  //File names
         string[] trainImages;       //
 
-        string goodTextBoxBuffer = "";
-        string badTextBoxBuffer = "";
+        string goodReportBuffer = "";
+        string badReportBuffer = "";
 
         List<pictureData>[] TrainingSet = new List<pictureData>[4];
         List<pictureData>[] ValidationSet = new List<pictureData>[4];
@@ -27,14 +39,15 @@ namespace Training
         List<Individual> GoodNets = new List<Individual>();         //Good ones found during training
         List<Individual> PickledBrains = new List<Individual>();    //From file - TODO: Stuff
 
-        public Train(string folder)
+        public Trainer(string folder)
         {
             trainImages = Directory.GetFiles(folder + "/train");
             validationImages = Directory.GetFiles(folder + "/validate");
-
+            
             getPics();
-        }
+        }       
 
+        #region fileIO
         private void getPics()
         {
             List<pictureData> trainingR = new List<pictureData>();
@@ -141,22 +154,37 @@ namespace Training
             ValidationSet[2] = validationB;
             ValidationSet[3] = validationHS;
         }
-
         public void saveGoodNets(string filename)
-        {         
-                try
+        {
+            try
+            {
+                using (Stream stream = File.Open(filename, FileMode.Create))
                 {
-                    using (Stream stream = File.Open(filename, FileMode.Create))
-                    {
-                        BinaryFormatter bin = new BinaryFormatter();
-                        bin.Serialize(stream, GoodNets);
-                    }
+                    BinaryFormatter bin = new BinaryFormatter();
+                    bin.Serialize(stream, GoodNets);
                 }
-                catch (IOException)
-                {
-                }
+            }
+            catch (IOException)
+            {
+            }
         }
+        public void LoadNets(string filename)
+        {
+            try
+            {
+                using (Stream stream = File.Open(filename, FileMode.Open))
+                {
+                    BinaryFormatter bin = new BinaryFormatter();
+                    PickledBrains = (List<Individual>)bin.Deserialize(stream);
+                }
+            }
+            catch (IOException)
+            {
+            }
+        }
+        #endregion
 
+        #region Validation & Training
         private int Validate(Individual individual)
         {
             //Exposes the Individual to the validation folder.
@@ -209,8 +237,7 @@ namespace Training
             individual.validationScore = d;
             return correct;
         }
-
-        private bool ValidateGoodNets()
+        public bool ValidateGoodNets()
         {
             int imagesPassed = 0;
 
@@ -267,6 +294,26 @@ namespace Training
                 return false;
         }
 
+        public void GoGoGo()
+        {
+            //Populates the TrainingPool list. One per core. The topology (layers*perlayer) is randomly chosen
+            //for each Individual between the limits set in the gui. Then each Individual will be trained in parallel.
+
+            TrainingPool.Clear();
+
+            for (int i = 0; i < Environment.ProcessorCount; i++)
+            {
+                if (subImage)
+                    TrainingPool.Add(subImageIndividual());
+                else
+                    TrainingPool.Add(histIndividual());
+            }
+
+            worker = new Thread(DoWork);
+            worker.Start();
+            //worker.Join();
+            //DoWork();
+        }
         private void trainThread(Individual individual)
         {
             int h = individual.dataType;
@@ -313,7 +360,6 @@ namespace Training
 
             individual.totalCycles += maxCycles;
         }
-
         private void DoWork()
         {
             bool done = false;
@@ -362,7 +408,7 @@ namespace Training
                         Individual good = TrainingPool[i];
                         GoodNets.Add(good);
 
-                        goodTextBoxBuffer += good.info();
+                        goodReportBuffer += good.info();
 
                         int hType = r.Next(TrainingSet.Length);
 
@@ -370,8 +416,6 @@ namespace Training
                             TrainingPool[i] = subImageIndividual();
                         else
                             TrainingPool[i] = histIndividual();
-
-                        //TrainingPool[i] = new Individual(TrainingSet[hType].ElementAt(0).hist.Length, rNewLayers, rNewPerLayer, hType, new Rect());
                     }
 
                     if (TrainingPool[i].totalCycles >= maxCylces)
@@ -385,7 +429,7 @@ namespace Training
                         else
                             TrainingPool[i] = histIndividual();
 
-                        badTextBoxBuffer += old.info();
+                        badReportBuffer += old.info();
                     }
 
                     Validate(TrainingPool[i]);
@@ -397,28 +441,46 @@ namespace Training
                     if (!done)
                         GoodNets.RemoveAt(0); //FIFO
                 }
-                Report();
+
+                if (goodReportBuffer != "" || badReportBuffer != "")
+                {
+                    TrainingReport tr = new TrainingReport();
+                    tr.goodReport = goodReportBuffer;
+                    tr.badReport = badReportBuffer;
+
+                    Report(this, tr);
+                }
+                goodReportBuffer = "";
+                badReportBuffer = "";
             }
             //Save them
         }
 
-        private void Report()
+        /*
+        public void Report()
         {
             //Use these buffers to report what's going on
 
-            //textBoxGood.Text += goodTextBoxBuffer;
-            goodTextBoxBuffer = "";
+            //textBoxGood.Text += goodReportBuffer;
+            goodReportBuffer = "";
 
             //textBoxGood.SelectionStart = textBoxGood.Text.Length;
             //textBoxGood.ScrollToCaret();
 
-            //textBoxBad.Text += badTextBoxBuffer;
-            badTextBoxBuffer = "";
+            //textBoxBad.Text += badReportBuffer;
+            badReportBuffer = "";
 
             //textBoxBad.SelectionStart = textBoxBad.Text.Length;
             //textBoxBad.ScrollToCaret();            
+        } 
+        */
+        public void Cancel()
+        {
+            return;
         }
-        
+        #endregion
+
+        #region Individual Types
         public Individual histIndividual()
         {
             int hType = r.Next(4);
@@ -428,7 +490,6 @@ namespace Training
 
             return new Individual(TrainingSet[hType].ElementAt(0).hist.Length, layers, perLayer, hType, new Rect());
         }
-
         public Individual subImageIndividual()
         {
             int layers = r.Next(layersMin, layersMax + 1);
@@ -448,61 +509,22 @@ namespace Training
             rect.y = r.Next(0, imageHeight - height);
 
             return new Individual(width * height * 3, layers, perLayer, (int)DataSet.ImageData.Types.SI, rect);
-        }
-
-        private void GoGoGo()
-        {
-            //Populates the TrainingPool list. One per core. The topology (layers*perlayer) is randomly chosen
-            //for each Individual between the limits set in the gui. Then, backgroundWorkerTrainer is started
-            //which will train each Individual in parallel.
-
-            for (int i = 0; i < Environment.ProcessorCount; i++)
-            {
-                if (subImage)
-                    TrainingPool.Add(subImageIndividual());
-                else
-                    TrainingPool.Add(histIndividual());
-            }
-            DoWork();
-        }
-
-        private void LoadNets(string filename)
-        {
-            try
-            {
-                using (Stream stream = File.Open(filename, FileMode.Open))
-                {
-                    BinaryFormatter bin = new BinaryFormatter();
-                    PickledBrains = (List<Individual>)bin.Deserialize(stream);
-                }
-            }
-            catch (IOException)
-            {
-            }
-        }
+        } 
+        #endregion               
         
-        public double validationThresh { get; set; }
-
+        #region properties
         public bool subImage { get; set; }
-
+        public double validationThresh { get; set; }
         public int layersMin { get; set; }
-
         public int layersMax { get; set; }
-
         public int perLayerMin { get; set; }
-
         public int perLayerMax { get; set; }
-
         public int maxCylces { get; set; }
-
         public int goodNetListSize { get; set; }
-
         public int SIWidthMin { get; set; }
-
         public int SIWidthMax { get; set; }
-
         public int SIHeightMin { get; set; }
-
-        public int SIHeightMax { get; set; }
+        public int SIHeightMax { get; set; }    
+        #endregion     
     }
 }
